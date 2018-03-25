@@ -1,0 +1,19 @@
+body {
+    padding-top: 50px;
+}
+
+.starter-template {
+    padding: 40px 15px;
+    text-align: center;
+}
+
+#content {
+
+    padding: 0;
+    width: 100%;
+
+    /* Visual */
+    background-color: #B9B9B9;
+    border: 1px solid #3F3F3F;
+    border-radius: 3px;
+}

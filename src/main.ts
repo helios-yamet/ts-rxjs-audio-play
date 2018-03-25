@@ -4,7 +4,6 @@ import "./index.html";
 import Test1 from "./test1";
 
 document.getElementById("test1")!.onclick = () => {
-    document.getElementById("content")!.innerHTML = "";
     var test1: Test1 = new Test1();
 };
 

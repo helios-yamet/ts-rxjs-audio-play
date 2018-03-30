@@ -1,6 +1,8 @@
-import "./styles.css";
+
 import "bootstrap/dist/css/bootstrap.min.css";
+import "./styles.css";
 import "./index.html";
+
 import Test1 from "./test1";
 
 document.getElementById("test1")!.onclick = () => {

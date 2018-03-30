@@ -12,7 +12,7 @@
   "license": "MIT",
   "dependencies": {
     "bootstrap": "^3.3.7",
-    "jquery": "^3.2.1",
+    "jquery": "^3.3.1",
     "rxjs": "^5.5.7",
     "typescript-collections": "^1.2.5"
   },
@@ -20,6 +20,7 @@
     "@reactivex/rxjs": "^5.5.7",
     "@types/es6-shim": "^0.31.36",
     "@types/extract-text-webpack-plugin": "^2.1.0",
+    "@types/jquery": "^3.3.1",
     "@types/node": "^8.0.30",
     "@types/svg.js": "^2.3.1",
     "@types/webpack": "^3.0.11",

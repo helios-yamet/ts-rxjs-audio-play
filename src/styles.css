@@ -2,23 +2,30 @@ body {
     padding-top: 50px;
 }
 
-.starter-template {
-    padding: 40px 15px;
-    text-align: center;
-}
-
 #content {
 
-    padding: 0;
+    margin-top: 20px;
+    padding: 20px;
     width: 100%;
 
     /* Visual */
-    background-color: #B9B9B9;
+    background-color: rgb(228, 220, 220);
     border: 1px solid #3F3F3F;
     border-radius: 3px;
 }
 
 #test1-content {
+    height: 600px;
+}
 
-    height: 400px;
+h2 {
+    margin-bottom: 30px;
+}
+
+.row {
+    margin-top: 10px;
+}
+
+.progress-bar {
+    transition: none;
 }

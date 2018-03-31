@@ -1,5 +1,7 @@
+import "./styles.css";
+
 import * as Rx from "rxjs/Rx";
-import * as template from "!raw-loader!./test1.html";
+import * as template from "!raw-loader!./template.html";
 import * as $ from "jquery";
 
 interface IEvent {
@@ -12,18 +14,25 @@ const MAX_SPEED: number = 3;
 const SMOOTHING: number = 0.99;
 const RELEASE: number = 0.01;
 
-export default class Test1 {
+export default class Test1 implements IDisposable {
+
+    private subscription: Rx.Subscription;
 
     constructor() {
 
         let content: string = document.getElementById("content")!.innerHTML = template;
-        let test1Content: HTMLElement = document.getElementById("test1-content")!;
+        let test2Content: HTMLElement = document.getElementById("test1-content")!;
 
-        let mouseSpeed$: Rx.Observable<number> = this.createObservable(test1Content);
-        let subscription: Rx.Subscription = mouseSpeed$.subscribe((state) => {
+        let mouseSpeed$: Rx.Observable<number> = this.createObservable(test2Content);
+
+        this.subscription = mouseSpeed$.subscribe((state) => {
             console.log(state);
             $("#progress-speed > div").attr("style", "width: " + state + "%");
         });
+    }
+
+    dispose(): void {
+        this.subscription.unsubscribe();
     }
 
     /**

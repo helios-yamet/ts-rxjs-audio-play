@@ -14,18 +14,10 @@ body {
     border-radius: 3px;
 }
 
-#test1-content {
-    height: 600px;
-}
-
 h2 {
     margin-bottom: 30px;
 }
 
 .row {
     margin-top: 10px;
-}
-
-.progress-bar {
-    transition: none;
 }

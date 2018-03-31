@@ -3,22 +3,19 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./styles.css";
 import "./index.html";
 
-import Test1 from "./test1";
+import * as $ from "jquery";
 
-document.getElementById("test1")!.onclick = () => {
-    var test1: Test1 = new Test1();
-};
+import Test1 from "./test1/script";
+import Test2 from "./test2/script";
 
-document.getElementById("test2")!.onclick = () => {
-    document.getElementById("content")!.innerHTML = "";
-};
+let currentTest: IDisposable = new Test1();
 
-document.getElementById("test3")!.onclick = () => {
-    document.getElementById("content")!.innerHTML = "";
-};
+$("#test1").on("click", () => {
+    currentTest.dispose();
+    currentTest = new Test1();
+});
 
-document.getElementById("test4")!.onclick = () => {
-    document.getElementById("content")!.innerHTML = "";
-};
-
-document.getElementById("test1")!.click();
+$("#test2").on("click", () => {
+    currentTest.dispose();
+    currentTest = new Test2();
+});

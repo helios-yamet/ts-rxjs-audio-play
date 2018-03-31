@@ -1,4 +1,5 @@
 import "./styles.css";
+import "./knob.png";
 
 import * as Rx from "rxjs/Rx";
 import * as template from "!raw-loader!./template.html";
@@ -10,7 +11,7 @@ interface IEvent {
     pageY: number;
 }
 
-const MAX_SPEED: number = 3;
+const MAX_SPEED: number = 1;
 const SMOOTHING: number = 0.99;
 const RELEASE: number = 0.01;
 
@@ -20,14 +21,16 @@ export default class Test2 implements IDisposable {
 
     constructor() {
 
-        let content: string = document.getElementById("content")!.innerHTML = template;
-        let test2Content: HTMLElement = document.getElementById("test2-content")!;
+        $("#content").html(template);
 
-        let mouseSpeed$: Rx.Observable<number> = this.createObservable(test2Content);
+        let drag$: Rx.Observable<number> = this.createObservable($("#knob").get(0));
+        this.subscription = drag$.subscribe((state) => {
 
-        this.subscription = mouseSpeed$.subscribe((state) => {
-            console.log(state);
-            $("#progress-speed > div").attr("style", "width: " + state + "%");
+            let angle: number = state / 100 * 360;
+            $("#knob").css("-webkit-transform", `rotate(${angle}deg)`);
+            $("#knob").css("transform", `rotate(${angle}deg)`);
+
+            $("#knob-value h3").text(state);
         });
     }
 
@@ -36,13 +39,12 @@ export default class Test2 implements IDisposable {
     }
 
     /**
-     * Create an observable emitting the speed of the mouse over the provided
-     * HTML element.
+     * ...
      */
-    private createObservable = function (this: Test2, test1Content: HTMLElement): Rx.Observable<number> {
+    private createObservable = function (this: Test2, knob: HTMLElement): Rx.Observable<number> {
 
         let mouseEvents$: Rx.Observable<MouseEvent> = Rx.Observable
-            .fromEvent<MouseEvent>(test1Content, "mousemove");
+            .fromEvent<MouseEvent>(knob, "mousemove");
 
         let timer$: Rx.Observable<number> = Rx.Observable
             .interval(5)

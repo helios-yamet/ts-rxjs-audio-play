@@ -5,91 +5,70 @@ import * as Rx from "rxjs/Rx";
 import * as template from "!raw-loader!./template.html";
 import * as $ from "jquery";
 
-interface IEvent {
-    timeStamp: number;
-    pageX: number;
-    pageY: number;
-}
-
-const MAX_SPEED: number = 1;
-const SMOOTHING: number = 0.99;
-const RELEASE: number = 0.01;
-
 export default class Test2 implements IDisposable {
 
-    private subscription: Rx.Subscription;
+    private subscription: Rx.Subscription | undefined;
 
     constructor() {
 
         $("#content").html(template);
 
-        let drag$: Rx.Observable<number> = this.createObservable($("#knob").get(0));
-        this.subscription = drag$.subscribe((state) => {
-
-            let angle: number = state / 100 * 360;
-            $("#knob").css("-webkit-transform", `rotate(${angle}deg)`);
-            $("#knob").css("transform", `rotate(${angle}deg)`);
-
-            $("#knob-value h3").text(state);
-        });
+        let connectBtn: JQuery<HTMLElement> = $("#connect");
+        Rx.Observable.fromEvent(connectBtn.get(0), "click")
+            .subscribe(() => this.connectMidi(connectBtn.get(0)));
     }
 
     dispose(): void {
-        this.subscription.unsubscribe();
+        if (this.subscription) {
+            this.subscription.unsubscribe();
+        }
     }
 
     /**
-     * ...
+     * Connect to a MIDI input
+     * @param connectBtn A button
      */
-    private createObservable = function (this: Test2, knob: HTMLElement): Rx.Observable<number> {
+    private connectMidi = function (this: Test2, connectBtn: HTMLElement): void {
 
-        let mouseEvents$: Rx.Observable<MouseEvent> = Rx.Observable
-            .fromEvent<MouseEvent>(knob, "mousemove");
+        let access: WebMidi.MIDIAccess;
+        Rx.Observable
+            .fromPromise(navigator.requestMIDIAccess())
+            .subscribe(
+                (next) => {
+                    if (next.inputs.size > 0) {
+                        let input: WebMidi.MIDIInput = next.inputs.values().next().value!;
+                        let knob$: Rx.Observable<number> = this.createObservable(input);
+                        this.subscription = knob$.subscribe((state) => {
 
-        let timer$: Rx.Observable<number> = Rx.Observable
-            .interval(5)
-            .map(() => Rx.Scheduler.animationFrame.now())
-            .withLatestFrom(mouseEvents$)
-            .map<[number, MouseEvent], IEvent>((combo) => {
-                return {
-                    timeStamp: combo[0],
-                    pageX: combo[1].pageX,
-                    pageY: combo[1].pageY
-                };
-            })
-            .pairwise<IEvent>()
-            .map<IEvent[], number>((pair) => this.mouseSpeed(pair[0], pair[1]))
-            .scan<number>((prev, current) => {
-                return current > 0
-                    ? SMOOTHING * prev + (1 - SMOOTHING) * current
-                    : (1 - RELEASE) * prev;
-            }, 0)
-            .map<number, number>((speed) => this.normalizeSpeed(speed, MAX_SPEED));
+                            let angle: number = state / 100 * 360;
+                            $("#knob").css("-webkit-transform", `rotate(${angle}deg)`);
+                            $("#knob").css("transform", `rotate(${angle}deg)`);
 
-        return timer$;
+                            $("#knob-value h3").text(state);
+                        });
+                        console.log(`Connected to input '${input.name}'`);
+                    } else {
+                        console.error("No MIDI input detected.");
+                    }
+                },
+                (error) => {
+                    console.error(`Cannot connect Web MIDI: ${error}`);
+                }
+            );
     };
 
     /**
-     * Calculate the speed of cursor based on two subsequent mouse events
-     * @param previous previous mouse event
-     * @param current  current mouse event
+     * Observable for the values received from the given midi input.
+     * @param midiInput A MIDI input
      */
-    private mouseSpeed = function (previous: IEvent, current: IEvent): number {
+    private createObservable = function (this: Test2, midiInput: WebMidi.MIDIInput): Rx.Observable<number> {
 
-        let distance: number = Math.sqrt(
-            Math.pow(previous.pageX - current.pageX, 2) +
-            Math.pow(previous.pageY - current.pageY, 2));
-
-        let time: number = current.timeStamp - previous.timeStamp;
-        return time > 0 ? distance / time : 0;
-    };
-
-    /**
-     * Normalize provided speed to a percentage of the given max speed
-     * @param speed A mouse speed
-     * @param maxSpeed The max speed threshold (corresponds to 100)
-     */
-    private normalizeSpeed = function (speed: number, maxSpeed: number): number {
-        return Math.floor(Math.min(speed, maxSpeed) / maxSpeed * 100);
+        let subject: Rx.Subject<number> = new Rx.Subject();
+        midiInput.onmidimessage = function (e: WebMidi.MIDIMessageEvent): void {
+            console.log(e.data);
+            let val: number = e.data[2];
+            subject.next(Math.round(val / 127 * 100));
+        };
+        return subject;
     };
 }

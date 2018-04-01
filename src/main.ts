@@ -7,8 +7,9 @@ import * as $ from "jquery";
 
 import Test1 from "./test1/script";
 import Test2 from "./test2/script";
+import Test3 from "./test3/script";
 
-let currentTest: IDisposable = new Test2();
+let currentTest: IDisposable = new Test3();
 
 $("#test1").on("click", () => {
     currentTest.dispose();
@@ -18,4 +19,9 @@ $("#test1").on("click", () => {
 $("#test2").on("click", () => {
     currentTest.dispose();
     currentTest = new Test2();
+});
+
+$("#test3").on("click", () => {
+    currentTest.dispose();
+    currentTest = new Test3();
 });

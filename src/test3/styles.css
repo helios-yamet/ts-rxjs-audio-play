@@ -1,0 +1,16 @@
+#test3-content {
+    height: 600px;
+}
+
+#knob {
+    display: block;
+
+    width: 150px;
+    height: 150px;
+
+    background-image: url("./knob.png");
+    background-size: 150px 150px;
+    background-repeat: no-repeat;
+
+    cursor: pointer;
+}

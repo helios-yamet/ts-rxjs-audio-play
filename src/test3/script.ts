@@ -13,7 +13,7 @@ export default class Test3 implements IDisposable {
 
         $("#content").html(template);
 
-        this.connectMidi($("#connect").get(0));
+        this.connectMidiController($("#connect").get(0));
     }
 
     dispose(): void {
@@ -23,12 +23,13 @@ export default class Test3 implements IDisposable {
     }
 
     /**
-     * Connect to a MIDI input
+     * Connect to a MIDI input (just pick the first found)
      * @param connectBtn A button
      */
-    private connectMidi = function (this: Test3, connectBtn: HTMLElement): void {
+    private connectMidiController = function (this: Test3, connectBtn: HTMLElement): void {
 
         this.subscription = Rx.Observable.fromEvent(connectBtn, "click")
+            .take(1)
             .flatMapTo(Rx.Observable.fromPromise(navigator.requestMIDIAccess()))
             .flatMap((access: WebMidi.MIDIAccess, index: number) => {
                 if (access.inputs.size === 0) {
@@ -49,6 +50,7 @@ export default class Test3 implements IDisposable {
                     $("#knob").css("-webkit-transform", `rotate(${angle}deg)`);
                     $("#knob").css("transform", `rotate(${angle}deg)`);
                     $("#knob-value h3").text(state);
+                    console.log(state);
                 },
                 error => console.error(error)
             );

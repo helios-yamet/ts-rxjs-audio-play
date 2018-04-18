@@ -16,11 +16,12 @@ export default class Test4 implements IDisposable {
 
         this.connectMidiController($("#connect").get(0), knob);
         this.dragKnob($("#knob-animation-wrapper").get(0), knob);
+        this.numPadControl(knob);
 
         knob.subscribe(
             (state: number) => {
                 let frame: number = Math.round(state / 100 * 50);
-                $("#knob-sprites").css("transform", `translate(${-frame*200}px, 0px)`);
+                $("#knob-sprites").css("transform", `translate(${-frame * 200}px, 0px)`);
                 $("#knob-value h3").text(state);
                 console.log(`Subject state: ${state}`);
             },
@@ -40,9 +41,10 @@ export default class Test4 implements IDisposable {
      * @param connectBtn A button
      * @param knobSubject A subject where new values will be emitted
      */
-    private connectMidiController = function (this: Test4, connectBtn: HTMLElement, knobSubject: Rx.BehaviorSubject<number>): void {
+    private connectMidiController = function (this: Test4, connectBtn: HTMLElement, knobSubject: Rx.BehaviorSubject<number>)
+        : Rx.Subscription {
 
-        this.subscription = Rx.Observable.fromEvent(connectBtn, "click")
+        let midiInputs$: Rx.Observable<number> = Rx.Observable.fromEvent(connectBtn, "click")
             .take(1)
             .flatMapTo(Rx.Observable.fromPromise(navigator.requestMIDIAccess()))
             .flatMap((access: WebMidi.MIDIAccess, index: number) => {
@@ -58,11 +60,12 @@ export default class Test4 implements IDisposable {
                 console.log(`Listening to input '${input.name}'...`);
                 return subject;
             })
-            .distinctUntilChanged()
-            .subscribe(
-                state => knobSubject.next(state),
-                error => console.error(error)
-            );
+            .distinctUntilChanged();
+
+        return midiInputs$.subscribe(
+            state => knobSubject.next(state),
+            error => console.error(error)
+        );
     };
 
     /**
@@ -70,7 +73,8 @@ export default class Test4 implements IDisposable {
      * @param connectBtn A button
      * @param knobSubject A subject where new values will be emitted
      */
-    private dragKnob = function (this: Test4, htmlKnob: HTMLElement, knobSubject: Rx.BehaviorSubject<number>): void {
+    private dragKnob = function (this: Test4, htmlKnob: HTMLElement, knobSubject: Rx.BehaviorSubject<number>)
+        : Rx.Subscription {
 
         const MAX_DIST: number = 100;
 
@@ -90,11 +94,48 @@ export default class Test4 implements IDisposable {
                 let normalized: number = Math.min(Math.abs(dist), MAX_DIST) * sign;
                 return Math.round(Math.min(MAX_DIST, Math.max(0, startValue + normalized / MAX_DIST * 100)));
             })
-            .distinctUntilChanged()
-            .takeUntil(mouseUp$);
+                .distinctUntilChanged()
+                .takeUntil(mouseUp$);
         });
 
-        mouseDrag$.subscribe(
+        return mouseDrag$.subscribe(
+            state => knobSubject.next(state),
+            error => console.error(error));
+    };
+
+    /**
+     * Control input from keyboard (will produce a value every 3 digits typed)
+     * @param knobSubject A subject where new values will be emitted
+     */
+    private numPadControl = function (this: Test4, knobSubject: Rx.BehaviorSubject<number>)
+        : Rx.Subscription {
+
+        const KEY0: number = 48;
+        const KEY9: number = 57;
+        const KEYNUM0: number = 96;
+        const KEYNUM9: number = 105;
+
+        let keyboardInputs$: Rx.Observable<number> = Rx.Observable.fromEvent<KeyboardEvent>(document, "keydown")
+            .map((event) => {
+                let code: number = event.keyCode;
+                if (code >= KEYNUM0 && code <= KEYNUM9) {
+                    return code - KEYNUM0;
+                } else if (code >= KEY0 && code <= KEY9) {
+                    return code - KEY0;
+                }
+                return -1;
+            })
+            .filter((digit) => digit >= 0)
+            .bufferCount(3)
+            .map((digits: number[], y: number) => {
+                let value: number = 0;
+                digits.reverse().forEach((digit: number, index: number) => {
+                    value += Math.pow(10, index) * digit;
+                });
+                return Math.min(value, 100);
+            });
+
+        return keyboardInputs$.subscribe(
             state => knobSubject.next(state),
             error => console.error(error));
     };

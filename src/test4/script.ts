@@ -13,6 +13,7 @@ export default class Test4 implements IDisposable {
         $("#content").html(template);
 
         this.connectMidiController($("#connect").get(0));
+        this.dragKnob($("#knob-animation-wrapper").get(0));
     }
 
     dispose(): void {
@@ -52,5 +53,40 @@ export default class Test4 implements IDisposable {
                 },
                 error => console.error(error)
             );
+    };
+
+    /**
+     * Simple drag for the button (works in absolute mode, not taking the current value into account).
+     * @param connectBtn A button
+     */
+    private dragKnob = function (this: Test4, knob: HTMLElement): void {
+
+        let mouseDown$: Rx.Observable<MouseEvent> = Rx.Observable.fromEvent(knob, "mousedown");
+        let mouseMove$: Rx.Observable<MouseEvent> = Rx.Observable.fromEvent(document, "mousemove");
+        let mouseUp$: Rx.Observable<MouseEvent> = Rx.Observable.fromEvent(document, "mouseup");
+
+        let mouseDrag$: Rx.Observable<number> = mouseDown$.flatMap((downEvent: MouseEvent, index: number) => {
+
+            downEvent.preventDefault();
+            const MAX_DIST: number = 100;
+
+            // calculate offsets when mouse down
+            let startY: number = downEvent.screenY;
+
+            return mouseMove$.map((moveEvent) => {
+
+                let newY: number = moveEvent.screenY;
+                let dist: number = startY - newY;
+                return Math.round(Math.max(Math.min(dist, MAX_DIST) / MAX_DIST * 100, 0));
+
+            }).takeUntil(mouseUp$);
+        });
+
+        this.subscription = mouseDrag$.subscribe((state: number) => {
+            let frame: number = Math.round(state / 100 * 50);
+            $("#knob-sprites").css("transform", `translate(${-frame*200}px, 0px)`);
+            $("#knob-value h3").text(state);
+            console.log(state);
+            });
     };
 }

@@ -104,7 +104,7 @@ export default class Test4 implements IDisposable {
     };
 
     /**
-     * Control input from keyboard (will produce a value every 3 digits typed)
+     * Control input from keyboard (will produce a value shortly after no additional number has been typed)
      * @param knobSubject A subject where new values will be emitted
      */
     private numPadControl = function (this: Test4, knobSubject: Rx.BehaviorSubject<number>)
@@ -115,7 +115,9 @@ export default class Test4 implements IDisposable {
         const KEYNUM0: number = 96;
         const KEYNUM9: number = 105;
 
-        let keyboardInputs$: Rx.Observable<number> = Rx.Observable.fromEvent<KeyboardEvent>(document, "keydown")
+        let input$: Rx.Observable<KeyboardEvent> = Rx.Observable.fromEvent<KeyboardEvent>(document, "keydown");
+        let debounceBreak$: Rx.Observable<KeyboardEvent> = input$.debounceTime(350);
+        let stream$: Rx.Observable<number> = input$
             .map((event) => {
                 let code: number = event.keyCode;
                 if (code >= KEYNUM0 && code <= KEYNUM9) {
@@ -126,16 +128,17 @@ export default class Test4 implements IDisposable {
                 return -1;
             })
             .filter((digit) => digit >= 0)
-            .bufferCount(3)
+            .buffer(debounceBreak$)
             .map((digits: number[], y: number) => {
                 let value: number = 0;
                 digits.reverse().forEach((digit: number, index: number) => {
                     value += Math.pow(10, index) * digit;
                 });
+                console.log(`Value input: ${value}`);
                 return Math.min(value, 100);
             });
 
-        return keyboardInputs$.subscribe(
+        return stream$.subscribe(
             state => knobSubject.next(state),
             error => console.error(error));
     };

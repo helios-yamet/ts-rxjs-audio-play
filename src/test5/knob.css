@@ -1,39 +1,81 @@
 .knob {
+    /* Positioning */
     float: left;
+    margin: 0px 0px;
+
+    /* Visual */
+    background-color: rgb(237, 239, 240);
 }
 
-.knob .knob-animation-wrapper {
-    overflow: hidden;
+.knob-animation-wrapper {
+    /* Positioning */
     position: relative;
     margin: 0px 0px;
+
+    /* Box-model */
     width: 100px;
     height: 100px;
+
+    /* Misc */
+    overflow: hidden;
 }
 
-.knob .knob-value {
-    z-index: 1;
+.knob-animation-sprites {
+    /* Positioning */
     position: absolute;
     left: 0;
-    top: 15px;
-    width: 100px;
-    text-align: center;
+    top: 0;
+
+    /* Box-model */
+    width: 5000px;
+    height: 100%;
+
+    /* Visual */
+    background-image: url("./sprites_w100_h100_50frames.png");
+    background-size: 100%, 100%;
+    background-repeat: no-repeat;
 }
 
-.knob .knob-value > h3 {
+.knob-value {
+    /* Positioning */
+    position: relative;
+    left: 0;
+    top: 60px;
+    margin-top: -30px;
+    z-index: 1;
+
+    /* Box-model */
+    width: 100px;
+    height: 30px;
+
+    /* Typography */
     font-weight: bold;
     font-size:1.5em;
     font-family: monospace;
     color: white;
+    text-align: center;
+
+    /* Misc */
     user-select: none;
 }
 
-.knob .knob-sprites {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 5000px;
-    height: 100%;
-    background-image: url("./sprites_w100_h100_50frames.png");
-    background-size: 100%, 100%;
-    background-repeat: no-repeat;
+.knob-label {
+    /* Positioning */
+    margin-bottom: 20px;
+
+    /* Box-model */
+    width: 100%;
+    height: 30px;
+    
+    /* Typography */
+    font-size:1em;
+    font-family: sans-serif;
+    color: black;
+    text-align: center;
+}
+
+.knob-label .selected {
+ 
+    /* Typography */
+    font-weight: bolder;
 }

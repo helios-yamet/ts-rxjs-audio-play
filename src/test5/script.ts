@@ -17,7 +17,7 @@ export default class Test5 implements IDisposable {
         this.knobs = [];
         for(let i:number = 0; i<30; i++) {
             let initValue: number = Math.round(Math.random() * 100);
-            this.knobs.push(new Knob("knobs-container", `knob${i}`, initValue));
+            this.knobs.push(new Knob("knobs-container", `knob${i}`, `Knob ${i}`, initValue));
         }
     }
 

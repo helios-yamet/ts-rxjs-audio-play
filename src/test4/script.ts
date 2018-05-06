@@ -134,7 +134,6 @@ export default class Test4 implements IDisposable {
                 digits.reverse().forEach((digit: number, index: number) => {
                     value += Math.pow(10, index) * digit;
                 });
-                console.log(`Value input: ${value}`);
                 return Math.min(value, 100);
             });
 

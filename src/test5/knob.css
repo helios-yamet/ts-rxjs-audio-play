@@ -1,0 +1,39 @@
+.knob {
+    float: left;
+}
+
+.knob .knob-animation-wrapper {
+    overflow: hidden;
+    position: relative;
+    margin: 0px 0px;
+    width: 100px;
+    height: 100px;
+}
+
+.knob .knob-value {
+    z-index: 1;
+    position: absolute;
+    left: 0;
+    top: 15px;
+    width: 100px;
+    text-align: center;
+}
+
+.knob .knob-value > h3 {
+    font-weight: bold;
+    font-size:1.5em;
+    font-family: monospace;
+    color: white;
+    user-select: none;
+}
+
+.knob .knob-sprites {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 5000px;
+    height: 100%;
+    background-image: url("./sprites_w100_h100_50frames.png");
+    background-size: 100%, 100%;
+    background-repeat: no-repeat;
+}

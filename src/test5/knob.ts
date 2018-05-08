@@ -9,12 +9,17 @@ const TEMPLATE_LABEL: string = "##LABEL##";
 
 export default class Knob extends Rx.BehaviorSubject<number> implements IDisposable {
 
-    private id: string;
+    public id: string;
     private label: string;
-
     private subscriptions: Rx.Subscription[];
 
-    constructor(containerId: string, id: string, label: string, initialState: number) {
+    constructor(
+        containerId: string,
+        id: string,
+        label: string,
+        initialState: number,
+        selectionCallback: (knob: Knob) => void) {
+
         super(initialState);
 
         this.id = id;
@@ -29,6 +34,7 @@ export default class Knob extends Rx.BehaviorSubject<number> implements IDisposa
 
         this.subscriptions.push(this.setupDrag());
         this.subscriptions.push(this.setupUIUpdate());
+        this.subscriptions.push(this.setupSelector(selectionCallback));
     }
 
     dispose(): void {
@@ -42,7 +48,7 @@ export default class Knob extends Rx.BehaviorSubject<number> implements IDisposa
 
         const MAX_DIST: number = 100;
 
-        let knobElement: HTMLElement = $(`#${this.id}`).get(0);
+        let knobElement: HTMLElement = $(`#${this.id} .knob-drag-area`).get(0);
         let mouseDown$: Rx.Observable<MouseEvent> = Rx.Observable.fromEvent(knobElement, "mousedown");
         let mouseMove$: Rx.Observable<MouseEvent> = Rx.Observable.fromEvent(document, "mousemove");
         let mouseUp$: Rx.Observable<MouseEvent> = Rx.Observable.fromEvent(document, "mouseup");
@@ -77,12 +83,36 @@ export default class Knob extends Rx.BehaviorSubject<number> implements IDisposa
         return this.subscribe(
             (state: number) => {
                 let frame: number = Math.floor(state / 100 * 49);
-                $(`#${this.id} .knob-animation-sprites`).css("transform", `translate(${-frame * 100}px, 0px)`);
+                $(`#${this.id} .knob-sprites`).css("transform", `translate(${-frame * 100}px, 0px)`);
                 $(`#${this.id} .knob-value`).text(state);
                 console.log(`${this.id} state: ${state}`);
             },
             error => console.error(error),
             () => console.log("Completed")
         );
+    };
+
+    /**
+     * Setup the selection behaviour by click (report selection to caller)
+     */
+    private setupSelector = function (this: Knob, selectionCallback: (knob: Knob) => void): Rx.Subscription {
+
+        return Rx.Observable.fromEvent($(`#${this.id} .knob-label`).get(0), "click").subscribe(() => {
+            selectionCallback(this);
+        });
+    };
+
+    /**
+     * Mark as selected (or unselected)
+     * @param selected Selected or not
+     */
+    public markSelection = function (this: Knob, selected: boolean): void {
+
+        let knobLabel: JQuery<HTMLElement> = $(`#${this.id} .knob-label`);
+        if(selected) {
+            knobLabel.addClass("selected");
+        } else {
+            knobLabel.removeClass("selected");
+        }
     };
 }

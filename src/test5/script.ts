@@ -17,8 +17,12 @@ export default class Test5 implements IDisposable {
 
         this.knobs = [];
         for(let i:number = 0; i<15; i++) {
-            let initValue: number = Math.round(Math.random() * 100);
-            this.knobs.push(new Knob("knobs-container", `knob${i}`, `Knob ${i}`, initValue, this.selectKnob));
+            let initValue: number = Math.round(Math.random() * 100) + 100;
+            this.knobs.push(new Knob(
+                "knobs-container", `knob${i}`, `Knob ${i}`,
+                100, 200, initValue,
+                (value:number) => `${value} Hz`,
+                this.selectKnob));
         }
 
         this.connectMidiController($("#connect").get(0));
@@ -58,7 +62,7 @@ export default class Test5 implements IDisposable {
                 let subject: Rx.Subject<number> = new Rx.Subject();
                 input.addEventListener("midimessage", (event: Event) => {
                     let midiEvent: WebMidi.MIDIMessageEvent = event as WebMidi.MIDIMessageEvent;
-                    subject.next(Math.round(midiEvent.data[2] / 127 * 100));
+                    subject.next(Math.round(midiEvent.data[2]));
                 });
                 console.log(`Listening to input '${input.name}'...`);
                 return subject;
@@ -66,9 +70,12 @@ export default class Test5 implements IDisposable {
             .distinctUntilChanged();
 
         return midiInputs$.subscribe(
-            state => {
+            value => {
                 if(this.activeKnob) {
-                    this.activeKnob.next(state);
+                    let ratio: number = value / 127;
+                    let normalizedValue: number = Math.round(
+                        this.activeKnob.minValue + ratio * (this.activeKnob.maxValue - this.activeKnob.minValue));
+                    this.activeKnob.next(normalizedValue);
                 }
             },
             error => console.error(error)
@@ -105,13 +112,14 @@ export default class Test5 implements IDisposable {
                 digits.reverse().forEach((digit: number, index: number) => {
                     value += Math.pow(10, index) * digit;
                 });
-                return Math.min(value, 100);
+                return value;
             });
 
         return stream$.subscribe(
             state => {
                 if(this.activeKnob) {
-                    this.activeKnob.next(state);
+                    let normalizedValue: number = Math.min(this.activeKnob.maxValue, Math.max(this.activeKnob.minValue, state));
+                    this.activeKnob.next(normalizedValue);
                 }
             },
             error => console.error(error));

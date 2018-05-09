@@ -10,21 +10,31 @@ const TEMPLATE_LABEL: string = "##LABEL##";
 export default class Knob extends Rx.BehaviorSubject<number> implements IDisposable {
 
     public id: string;
+    public minValue: number;
+    public maxValue: number;
+
     private label: string;
     private subscriptions: Rx.Subscription[];
+    private displayValue: (value: number) => string;
 
     constructor(
         containerId: string,
         id: string,
         label: string,
-        initialState: number,
+        minValue: number,
+        maxValue: number,
+        initialValue: number,
+        displayValue: (value: number) => string,
         selectionCallback: (knob: Knob) => void) {
 
-        super(initialState);
+        super(initialValue);
 
         this.id = id;
         this.label = label;
         this.subscriptions = [];
+        this.minValue = minValue;
+        this.maxValue = maxValue;
+        this.displayValue = displayValue;
 
         // render knob
         let renderedTemplate: string = template
@@ -46,7 +56,7 @@ export default class Knob extends Rx.BehaviorSubject<number> implements IDisposa
      */
     private setupDrag = function (this: Knob): Rx.Subscription {
 
-        const MAX_DIST: number = 100;
+        const MAX_DRAG_DIST: number = 100;
 
         let knobElement: HTMLElement = $(`#${this.id} .knob-drag-area`).get(0);
         let mouseDown$: Rx.Observable<MouseEvent> = Rx.Observable.fromEvent(knobElement, "mousedown");
@@ -63,8 +73,10 @@ export default class Knob extends Rx.BehaviorSubject<number> implements IDisposa
 
                     let dist: number = startY - moveEvent.screenY;
                     let sign: number = dist < 0 ? -1 : 1;
-                    let normalized: number = Math.min(Math.abs(dist), MAX_DIST) * sign;
-                    return Math.round(Math.min(MAX_DIST, Math.max(0, startValue + normalized / MAX_DIST * 100)));
+                    let normalizedDist: number = Math.min(Math.abs(dist), MAX_DRAG_DIST) * sign;
+                    let distRatio: number = normalizedDist / MAX_DRAG_DIST;
+                    let newValue: number = startValue + distRatio * (this.maxValue - this.minValue);
+                    return Math.round(Math.min(this.maxValue, Math.max(this.minValue, newValue)));
                 })
                 .distinctUntilChanged()
                 .takeUntil(mouseUp$);
@@ -80,11 +92,15 @@ export default class Knob extends Rx.BehaviorSubject<number> implements IDisposa
      */
     private setupUIUpdate = function (this: Knob): Rx.Subscription {
 
+        const NB_FRAMES: number = 50;
+        const SPRITE_WIDTH: number = 100;
+
         return this.subscribe(
             (state: number) => {
-                let frame: number = Math.floor(state / 100 * 49);
-                $(`#${this.id} .knob-sprites`).css("transform", `translate(${-frame * 100}px, 0px)`);
-                $(`#${this.id} .knob-value`).text(state);
+                let ratio: number = (state - this.minValue) / (this.maxValue - this.minValue);
+                let frame: number = Math.floor(ratio * (NB_FRAMES-1));
+                $(`#${this.id} .knob-sprites`).css("transform", `translate(${-frame * SPRITE_WIDTH}px, 0px)`);
+                $(`#${this.id} .knob-value`).text(this.displayValue(state));
                 console.log(`${this.id} state: ${state}`);
             },
             error => console.error(error),

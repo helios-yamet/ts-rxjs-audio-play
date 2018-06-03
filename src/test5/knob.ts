@@ -17,6 +17,11 @@ export default class Knob extends Rx.BehaviorSubject<number> implements IDisposa
     private subscriptions: Rx.Subscription[];
     private displayValue: (value: number) => string;
 
+    private $knobLabel: JQuery<HTMLElement>;
+    private $knobDragArea: JQuery<HTMLElement>;
+    private $knobSprites: JQuery<HTMLElement>;
+    private $knobValue: JQuery<HTMLElement>;
+
     constructor(
         containerId: string,
         id: string,
@@ -42,6 +47,12 @@ export default class Knob extends Rx.BehaviorSubject<number> implements IDisposa
             .replace(new RegExp(TEMPLATE_LABEL), label);
         $(`#${containerId}`).append(renderedTemplate);
 
+        // resolve jQuery elements
+        this.$knobLabel = $(`#${this.id} .knob-label`);
+        this.$knobDragArea = $(`#${this.id} .knob-drag-area`);
+        this.$knobSprites = $(`#${this.id} .knob-sprites`);
+        this.$knobValue = $(`#${this.id} .knob-value`);
+
         this.subscriptions.push(this.setupDrag());
         this.subscriptions.push(this.setupUIUpdate());
         this.subscriptions.push(this.setupSelector(selectionCallback));
@@ -58,8 +69,7 @@ export default class Knob extends Rx.BehaviorSubject<number> implements IDisposa
 
         const MAX_DRAG_DIST: number = 100;
 
-        let knobElement: HTMLElement = $(`#${this.id} .knob-drag-area`).get(0);
-        let mouseDown$: Rx.Observable<MouseEvent> = Rx.Observable.fromEvent(knobElement, "mousedown");
+        let mouseDown$: Rx.Observable<MouseEvent> = Rx.Observable.fromEvent(this.$knobDragArea.get(0), "mousedown");
         let mouseMove$: Rx.Observable<MouseEvent> = Rx.Observable.fromEvent(document, "mousemove");
         let mouseUp$: Rx.Observable<MouseEvent> = Rx.Observable.fromEvent(document, "mouseup");
         let mouseDrag$: Rx.Observable<number> = mouseDown$.flatMap((downEvent: MouseEvent, index: number) => {
@@ -99,8 +109,8 @@ export default class Knob extends Rx.BehaviorSubject<number> implements IDisposa
             (state: number) => {
                 let ratio: number = (state - this.minValue) / (this.maxValue - this.minValue);
                 let frame: number = Math.floor(ratio * (NB_FRAMES-1));
-                $(`#${this.id} .knob-sprites`).css("transform", `translate(${-frame * SPRITE_WIDTH}px, 0px)`);
-                $(`#${this.id} .knob-value`).text(this.displayValue(state));
+                this.$knobSprites.css("transform", `translate(${-frame * SPRITE_WIDTH}px, 0px)`);
+                this.$knobValue.text(this.displayValue(state));
                 console.log(`${this.id} state: ${state}`);
             },
             error => console.error(error),
@@ -113,7 +123,7 @@ export default class Knob extends Rx.BehaviorSubject<number> implements IDisposa
      */
     private setupSelector = function (this: Knob, selectionCallback: (knob: Knob) => void): Rx.Subscription {
 
-        return Rx.Observable.fromEvent($(`#${this.id} .knob-label`).get(0), "click").subscribe(() => {
+        return Rx.Observable.fromEvent(this.$knobLabel.get(0), "click").subscribe(() => {
             selectionCallback(this);
         });
     };
@@ -124,11 +134,10 @@ export default class Knob extends Rx.BehaviorSubject<number> implements IDisposa
      */
     public markSelection = function (this: Knob, selected: boolean): void {
 
-        let knobLabel: JQuery<HTMLElement> = $(`#${this.id} .knob-label`);
         if(selected) {
-            knobLabel.addClass("selected");
+            this.$knobLabel.addClass("selected");
         } else {
-            knobLabel.removeClass("selected");
+            this.$knobLabel.removeClass("selected");
         }
     };
 }

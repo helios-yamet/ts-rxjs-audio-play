@@ -47,6 +47,10 @@ export default class Oscillator implements IDisposable {
             0, 100, 0,
             (value:number) => `${value}`,
             this.inputController.selectKnob);
+
+        // register knobs
+        this.inputController.registerKnob(this.frequency);
+        this.inputController.registerKnob(this.amplitude);
     }
 
     dispose(): void {

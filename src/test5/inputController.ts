@@ -6,6 +6,7 @@ export default class InputController implements IDisposable {
 
     private knobs: Knob[];
     private activeKnob: Knob | undefined;
+    private activeKnobIndex: number | undefined;
 
     private subscriptions: Rx.Subscription[];
 
@@ -16,6 +17,7 @@ export default class InputController implements IDisposable {
 
         this.subscriptions.push(this.connectMidiController($("#connect").get(0)));
         this.subscriptions.push(this.numPadControl());
+        this.subscriptions.push(this.arrowsSelectControl());
     }
 
     registerKnob = (knob: Knob) => {
@@ -23,11 +25,30 @@ export default class InputController implements IDisposable {
     }
 
     selectKnob = (knob: Knob) => {
+
         if(this.activeKnob) {
             this.activeKnob.markSelection(false);
         }
+
         this.activeKnob = knob;
+        for(let i:number=0; i<this.knobs.length; i++) {
+            if(this.knobs[i].id === knob.id) {
+                this.activeKnobIndex = i;
+            }
+        }
+
         knob.markSelection(true);
+    }
+
+    private selectKnobByIndex = (i: number) => {
+
+        if(this.activeKnob) {
+            this.activeKnob.markSelection(false);
+        }
+
+        this.activeKnobIndex = i;
+        this.activeKnob = this.knobs[i];
+        this.activeKnob.markSelection(true);
     }
 
     dispose(): void {
@@ -39,7 +60,6 @@ export default class InputController implements IDisposable {
     /**
      * Connect to a MIDI input (just pick the first found)
      * @param connectBtn A button
-     * @param knobSubject A subject where new values will be emitted
      */
     private connectMidiController = function (this: InputController, connectBtn: HTMLElement)
         : Rx.Subscription {
@@ -77,7 +97,6 @@ export default class InputController implements IDisposable {
 
     /**
      * Control input from keyboard (will produce a value shortly after no additional number has been typed)
-     * @param knobSubject A subject where new values will be emitted
      */
     private numPadControl = function (this: InputController): Rx.Subscription {
 
@@ -100,6 +119,7 @@ export default class InputController implements IDisposable {
             })
             .filter((digit) => digit >= 0)
             .buffer(debounceBreak$)
+            .filter((digits) => digits.length > 0)
             .map((digits: number[], y: number) => {
                 let value: number = 0;
                 digits.reverse().forEach((digit: number, index: number) => {
@@ -116,5 +136,36 @@ export default class InputController implements IDisposable {
                 }
             },
             error => console.error(error));
+    };
+
+    /**
+     * Control input from keyboard (will select next or previous knob based on registered order)
+     */
+    private arrowsSelectControl = function (this: InputController): Rx.Subscription {
+
+        const KEY_LEFT: number = 37;
+        const KEY_RIGHT: number = 39;
+
+        const arrayIndex: (i: number, length: number) => number = (x, n) => (x % n + n) % n;
+
+        return Rx.Observable.fromEvent<KeyboardEvent>(document, "keydown")
+            .map((event) => {
+                let code: number = event.keyCode;
+                if (code === KEY_LEFT) {
+                    return -1;
+                } else if (code === KEY_RIGHT) {
+                    return 1;
+                }
+                return 0;
+            })
+            .filter(x => x !== 0)
+            .subscribe(
+                x => {
+                    let test: number = this.activeKnobIndex !== undefined
+                        ? this.activeKnobIndex + x
+                        : 0;
+                    this.selectKnobByIndex(arrayIndex(test, this.knobs.length));
+                },
+                error => console.error(error));
     };
 }

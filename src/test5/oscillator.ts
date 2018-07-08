@@ -14,8 +14,8 @@ export default class Oscillator implements IDisposable {
     public id: string;
     private label: string;
 
-    private frequency: Knob;
-    private amplitude: Knob;
+    public frequency: Knob;
+    public amplitude: Knob;
 
     private inputController: InputController;
 
@@ -38,7 +38,7 @@ export default class Oscillator implements IDisposable {
         // create knobs
         this.frequency = new Knob(
             `${this.id}-knobs`, `${this.id}-freq`, `Frequency`,
-            20, 20000, 440,
+            20, 2500, 100,
             (value:number) => `${value} Hz`,
             this.inputController.selectKnob);
 

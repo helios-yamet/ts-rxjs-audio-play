@@ -5,6 +5,8 @@ declare module '!raw-loader!*' {
   export = contents
 }
 
+declare module 'tone';
+
 interface IDisposable {
   dispose(): void;
 }

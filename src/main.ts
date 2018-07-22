@@ -10,8 +10,9 @@ import Test2 from "./test2/script";
 import Test3 from "./test3/script";
 import Test4 from "./test4/script";
 import Test5 from "./test5/script";
+import Test6 from "./test6/script";
 
-let currentTest: IDisposable = new Test5();
+let currentTest: IDisposable = new Test6();
 
 $("#test1").on("click", () => {
     currentTest.dispose();
@@ -36,4 +37,9 @@ $("#test4").on("click", () => {
 $("#test5").on("click", () => {
     currentTest.dispose();
     currentTest = new Test5();
+});
+
+$("#test6").on("click", () => {
+    currentTest.dispose();
+    currentTest = new Test6();
 });

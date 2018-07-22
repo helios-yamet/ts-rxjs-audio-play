@@ -17,6 +17,7 @@ export default class Test5 implements IDisposable {
 
     private globalOutput: GlobalOutput;
     private oscillators: Oscillator[];
+    private oscillatorNodes: OscillatorNode[];
 
     constructor() {
 
@@ -41,6 +42,7 @@ export default class Test5 implements IDisposable {
 
         // oscillators
         this.oscillators = [];
+        this.oscillatorNodes = [];
         for(let i:number = 0; i<6; i++) {
 
             let osc: Oscillator = new Oscillator(
@@ -49,23 +51,25 @@ export default class Test5 implements IDisposable {
 
             this.oscillators.push(osc);
 
-            let oscillator: OscillatorNode = this.audioContext.createOscillator();
-            oscillator.frequency.setValueAtTime(osc.frequency.getValue(), this.audioContext.currentTime);
+            let oscillatorNode: OscillatorNode = this.audioContext.createOscillator();
+            oscillatorNode.frequency.setValueAtTime(osc.frequency.getValue(), this.audioContext.currentTime);
 
             let gain: GainNode = this.audioContext.createGain();
             gain.gain.setValueAtTime(osc.amplitude.getValue(), this.audioContext.currentTime);
 
-            oscillator.connect(gain);
+            oscillatorNode.connect(gain);
             gain.connect(masterGain);
-            oscillator.start();
+            oscillatorNode.start();
 
             this.subscriptions.push(osc.frequency.subscribe((f) => {
-                oscillator.frequency.setValueAtTime(f, this.audioContext.currentTime);
+                oscillatorNode.frequency.setValueAtTime(f, this.audioContext.currentTime);
             }));
 
             this.subscriptions.push(osc.amplitude.subscribe((a) => {
                 gain.gain.setValueAtTime(a / 100 / 6, this.audioContext.currentTime);
             }));
+
+            this.oscillatorNodes.push(oscillatorNode);
         }
     }
 
@@ -74,6 +78,9 @@ export default class Test5 implements IDisposable {
         this.inputController.dispose();
         this.oscillators.forEach(o => {
             o.dispose();
+        });
+        this.oscillatorNodes.forEach(o => {
+            o.stop();
         });
         this.subscriptions.forEach(s => {
             s.unsubscribe();

@@ -1,0 +1,14 @@
+.visualizer-wrapper {
+
+    /* positioning */
+    position: relative;
+    float: left;
+    height: 205px;
+
+    /* box-model */
+    margin: 10px 10px;
+    padding: 10px;
+
+    /* visual */
+    background-color: rgb(237, 239, 240);
+}

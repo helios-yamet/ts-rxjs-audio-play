@@ -10,7 +10,7 @@ import Note from "./note";
 const TEMPLATE_KNOB_ID: string = "##ID##";
 const TEMPLATE_LABEL: string = "##LABEL##";
 
-const DEBOUNCE_MILLIS: number = 100;
+const DEBOUNCE_MILLIS: number = 500;
 
 export default class Input implements IDisposable {
 
@@ -18,6 +18,7 @@ export default class Input implements IDisposable {
 
     private currentNote: Note | null;
     private knob: Knob;
+    private toggle: boolean = true; // for tests
 
     private inputController: InputController;
 
@@ -68,7 +69,8 @@ export default class Input implements IDisposable {
             .skip(1)
             .map((knobValue: number) => {
                 if(this.currentNote === null) {
-                    this.currentNote = new Note();
+                    this.currentNote = new Note(this.toggle);
+                    this.toggle = !this.toggle;
                     this.currentNote.noteOn();
                 }
                 this.currentNote.modulate(knobValue);

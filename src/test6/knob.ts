@@ -111,7 +111,6 @@ export default class Knob extends Rx.BehaviorSubject<number> implements IDisposa
                 let frame: number = Math.floor(ratio * (NB_FRAMES-1));
                 this.$knobSprites.css("transform", `translate(${-frame * SPRITE_WIDTH}px, 0px)`);
                 this.$knobValue.text(this.displayValue(state));
-                console.log(`${this.id} state: ${state}`);
             },
             error => console.error(error),
             () => console.log("Completed")

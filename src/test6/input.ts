@@ -10,7 +10,7 @@ import Note from "./note";
 const TEMPLATE_KNOB_ID: string = "##ID##";
 const TEMPLATE_LABEL: string = "##LABEL##";
 
-const DEBOUNCE_MILLIS: number = 400;
+const DEBOUNCE_MILLIS: number = 100;
 
 export default class Input implements IDisposable {
 

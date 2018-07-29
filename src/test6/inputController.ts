@@ -18,10 +18,14 @@ export default class InputController implements IDisposable {
         this.subscriptions.push(this.connectMidiController($("#connect").get(0)));
         this.subscriptions.push(this.numPadControl());
         this.subscriptions.push(this.arrowsSelectControl());
+
+        // just automatically connect
+        $("#connect").get(0).click();
     }
 
     registerKnob = (knob: Knob) => {
         this.knobs.push(knob);
+        this.selectKnob(knob);
     }
 
     selectKnob = (knob: Knob) => {

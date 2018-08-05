@@ -1,6 +1,7 @@
 import * as Tone from "tone";
+import { ModulationEvent } from "./noteHandler";
 
-export default class Note {
+export default class Note implements IDisposable {
 
     private formantsA: any[];
     private formantsO: any[];
@@ -13,7 +14,7 @@ export default class Note {
 
         this.toggle = toggle;
 
-        this.masterVolume = new Tone.Volume(20);
+        this.masterVolume = new Tone.Volume(10);
 
         this.formantsA = [];
         this.formantsA.push(this.createFormant(600, 0, 60));
@@ -34,18 +35,18 @@ export default class Note {
             frequency: 1,
             depth: 0.1,
             type: "sine",
-            wet: 1
+            wet: 1.0
         });
 
         let tremolo: any = new Tone.Tremolo({
-            frequency: 100,
-            type: "sine",
-            depth: 0.9,
+            frequency: 150,
+            type: "triangle",
+            depth: 1.0,
             spread: 0,
             wet: 1.0
         });
 
-        let comp: any = new Tone.Compressor(-10, 20);
+        let comp: any = new Tone.Compressor(-30, 20);
 
         this.masterVolume.connect(vibrato);
         vibrato.connect(tremolo);
@@ -59,7 +60,7 @@ export default class Note {
             frequency: 100,
             detune: 0,
             phase: 0,
-            width: 0.001
+            width: 0.05
         });
 
         let filter: any = new Tone.Filter({
@@ -90,8 +91,8 @@ export default class Note {
         this.getFormants().forEach(f => f.start());
     }
 
-    public modulate(this: Note, value: number): void {
-        this.getFormants().forEach(f => f.frequency.value = this.mapRange(value, 10, 75));
+    public modulate(this: Note, modulation: ModulationEvent): void {
+        this.getFormants().forEach(f => f.frequency.value = this.mapRange(modulation.absolute, 60, 300));
     }
 
     public noteOff(this: Note): void {
@@ -100,5 +101,9 @@ export default class Note {
 
     private mapRange(this: Note, value: number, min: number, max: number): number {
         return min + (max - min) * value / 100;
+    }
+
+    dispose(): void {
+        // do some house-keeping here
     }
 }

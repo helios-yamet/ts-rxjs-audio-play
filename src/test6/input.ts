@@ -5,22 +5,21 @@ import * as template from "!raw-loader!./input.html";
 import * as $ from "jquery";
 import Knob from "./knob";
 import InputController from "./inputController";
-import Note from "./note";
+import NoteHandler from "./noteHandler";
 
 const TEMPLATE_KNOB_ID: string = "##ID##";
 const TEMPLATE_LABEL: string = "##LABEL##";
 
-const DEBOUNCE_MILLIS: number = 500;
-
 export default class Input implements IDisposable {
 
     public id: string;
-
-    private currentNote: Note | null;
     private knob: Knob;
-    private toggle: boolean = true; // for tests
 
     private inputController: InputController;
+    private sub: Rx.Subscription;
+
+    private numberActiveNoteHandlers: number;
+    private lastCreatedAt: Date;
 
     constructor(
         containerId: string,
@@ -41,46 +40,39 @@ export default class Input implements IDisposable {
         this.knob = new Knob(
             `${this.id}-knobs`, `${this.id}-val`, `Signal`,
             0, 100, 0,
-            (value:number) => `${value}`,
+            (value: number) => `${value}`,
             this.inputController.selectKnob);
 
         // register knob
         this.inputController.registerKnob(this.knob);
 
-        this.currentNote = null;
-        this.playNotes();
+        // pass the knob through a subject
+        let signal$: Rx.Subject<number> = new Rx.Subject();
+        this.knob.subscribe(signal$);
+
+        this.numberActiveNoteHandlers = 0;
+        this.lastCreatedAt = new Date(0);
+
+        this.sub = signal$.subscribe(() => {
+
+            if (this.canStartNote()) {
+
+                this.numberActiveNoteHandlers++;
+                this.lastCreatedAt = new Date();
+
+                NoteHandler.startNote(signal$, () => this.numberActiveNoteHandlers--);
+            }
+        });
     }
 
-    /**
-     * Detect changes on the knob and produce notes (modulated).
-     */
-    private playNotes(this: Input): void {
-
-        let debounceBreak$: Rx.Observable<number> = this.knob
-            .debounceTime(DEBOUNCE_MILLIS)
-            .filter(x => this.currentNote !== null)
-            .do(() => {
-                this.currentNote!.noteOff();
-                this.currentNote = null;
-                stream$.subscribe();
-            });
-
-        let stream$: Rx.Observable<void> = this.knob
-            .skip(1)
-            .map((knobValue: number) => {
-                if(this.currentNote === null) {
-                    this.currentNote = new Note(this.toggle);
-                    this.toggle = !this.toggle;
-                    this.currentNote.noteOn();
-                }
-                this.currentNote.modulate(knobValue);
-            })
-            .takeUntil(debounceBreak$);
-
-        stream$.subscribe();
+    canStartNote(this: Input): boolean {
+        let now: Date = new Date();
+        return this.numberActiveNoteHandlers < 1 &&
+            now.getTime() - this.lastCreatedAt.getTime() > 1000;
     }
 
     dispose(): void {
+        this.sub.unsubscribe();
         this.knob.dispose();
     }
 }

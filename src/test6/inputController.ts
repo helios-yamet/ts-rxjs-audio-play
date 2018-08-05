@@ -1,4 +1,3 @@
-import * as $ from "jquery";
 import * as Rx from "rxjs/Rx";
 import Knob from "./knob";
 
@@ -15,12 +14,9 @@ export default class InputController implements IDisposable {
         this.knobs = [];
         this.subscriptions = [];
 
-        this.subscriptions.push(this.connectMidiController($("#connect").get(0)));
+        this.subscriptions.push(this.connectMidiController());
         this.subscriptions.push(this.numPadControl());
         this.subscriptions.push(this.arrowsSelectControl());
-
-        // just automatically connect
-        $("#connect").get(0).click();
     }
 
     registerKnob = (knob: Knob) => {
@@ -30,13 +26,13 @@ export default class InputController implements IDisposable {
 
     selectKnob = (knob: Knob) => {
 
-        if(this.activeKnob) {
+        if (this.activeKnob) {
             this.activeKnob.markSelection(false);
         }
 
         this.activeKnob = knob;
-        for(let i:number=0; i<this.knobs.length; i++) {
-            if(this.knobs[i].id === knob.id) {
+        for (let i: number = 0; i < this.knobs.length; i++) {
+            if (this.knobs[i].id === knob.id) {
                 this.activeKnobIndex = i;
             }
         }
@@ -46,7 +42,7 @@ export default class InputController implements IDisposable {
 
     private selectKnobByIndex = (i: number) => {
 
-        if(this.activeKnob) {
+        if (this.activeKnob) {
             this.activeKnob.markSelection(false);
         }
 
@@ -62,33 +58,30 @@ export default class InputController implements IDisposable {
     }
 
     /**
-     * Connect to a MIDI input (just pick the first found)
-     * @param connectBtn A button
+     * Connect to a MIDI controller (just pick the first found)
      */
-    private connectMidiController = function (this: InputController, connectBtn: HTMLElement)
-        : Rx.Subscription {
+    private connectMidiController = function (this: InputController): Rx.Subscription {
 
-        let midiInputs$: Rx.Observable<number> = Rx.Observable.fromEvent(connectBtn, "click")
-            .take(1)
-            .flatMapTo(Rx.Observable.fromPromise(navigator.requestMIDIAccess()))
-            .flatMap((access: WebMidi.MIDIAccess, index: number) => {
+        let midiInputs$: Rx.Observable<number> = Rx.Observable.fromPromise(navigator.requestMIDIAccess())
+            .flatMap((access: WebMidi.MIDIAccess) => {
+
                 if (access.inputs.size === 0) {
                     throw "No MIDI input detected.";
                 }
+
                 let input: WebMidi.MIDIInput = access.inputs.values().next().value!;
-                let subject: Rx.Subject<number> = new Rx.Subject();
-                input.addEventListener("midimessage", (event: Event) => {
-                    let midiEvent: WebMidi.MIDIMessageEvent = event as WebMidi.MIDIMessageEvent;
-                    subject.next(Math.round(midiEvent.data[2]));
-                });
                 console.log(`Listening to input '${input.name}'...`);
-                return subject;
+
+                return Rx.Observable.fromEvent(input, "midimessage").map((event) => {
+                    let midiEvent: WebMidi.MIDIMessageEvent = event as WebMidi.MIDIMessageEvent;
+                    return Math.round(midiEvent.data[2]);
+                });
             })
             .distinctUntilChanged();
 
         return midiInputs$.subscribe(
             value => {
-                if(this.activeKnob) {
+                if (this.activeKnob) {
                     let ratio: number = value / 127;
                     let normalizedValue: number = Math.round(
                         this.activeKnob.minValue + ratio * (this.activeKnob.maxValue - this.activeKnob.minValue));
@@ -134,7 +127,7 @@ export default class InputController implements IDisposable {
 
         return stream$.subscribe(
             state => {
-                if(this.activeKnob) {
+                if (this.activeKnob) {
                     let normalizedValue: number = Math.min(this.activeKnob.maxValue, Math.max(this.activeKnob.minValue, state));
                     this.activeKnob.next(normalizedValue);
                 }

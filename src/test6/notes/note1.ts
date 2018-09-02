@@ -1,7 +1,7 @@
 import * as Tone from "tone";
-import { ModulationEvent } from "./noteHandler";
+import { ModulationEvent } from "../noteHandler";
 
-export default class Note implements IDisposable {
+export default class Note1 implements IDisposable {
 
     private formantsA: any[];
     private formantsO: any[];
@@ -80,26 +80,26 @@ export default class Note implements IDisposable {
         return osc;
     }
 
-    private getFormants(this: Note): any[] {
+    private getFormants(this: Note1): any[] {
         return this.toggle
             ? this.formantsA
             : this.formantsO;
     }
 
-    public noteOn(this: Note): void {
+    public noteOn(this: Note1): void {
         console.log(`Playing ${this.toggle ? "AAAAAAAAaaaaaaaaaaa" : "OOOOOOOOOoooooooooo"}`);
         this.getFormants().forEach(f => f.start());
     }
 
-    public modulate(this: Note, modulation: ModulationEvent): void {
+    public modulate(this: Note1, modulation: ModulationEvent): void {
         this.getFormants().forEach(f => f.frequency.value = this.mapRange(modulation.absolute, 60, 300));
     }
 
-    public noteOff(this: Note): void {
+    public noteOff(this: Note1): void {
         this.getFormants().forEach(f => f.stop());
     }
 
-    private mapRange(this: Note, value: number, min: number, max: number): number {
+    private mapRange(this: Note1, value: number, min: number, max: number): number {
         return min + (max - min) * value / 100;
     }
 

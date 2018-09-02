@@ -1,5 +1,5 @@
 import * as Rx from "rxjs/Rx";
-import Note from "./note";
+import Note from "./notes/note2";
 
 const DEBOUNCE_MILLIS: number = 500;
 

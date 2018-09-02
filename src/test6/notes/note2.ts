@@ -1,16 +1,19 @@
 import * as Tone from "tone";
+
 import { ModulationEvent } from "../noteHandler";
 
 export default class Note2 implements IDisposable {
 
     private audioContext: AudioContext;
+    private lfModel: AudioWorkletNode;
     private oscillatorNode: OscillatorNode;
 
-    constructor(toggle: boolean) {
+    constructor(audioContext: AudioContext) {
 
-        this.audioContext = new AudioContext();
+        this.audioContext = audioContext;
         this.oscillatorNode = this.audioContext.createOscillator();
         this.oscillatorNode.frequency.setValueAtTime(0, this.audioContext.currentTime);
+        this.lfModel = new AudioWorkletNode(this.audioContext, "lf-model");
 
         Tone.setContext(this.audioContext);
 
@@ -19,21 +22,22 @@ export default class Note2 implements IDisposable {
             frequency: 100,
             depth: .1,
             type: "sine",
-            wet: 1.0
+            wet: 1
         });
 
         let tremolo: any = new Tone.Tremolo({
             frequency: 50,
             type: "triangle",
-            depth: 1.0,
+            depth: 0.2,
             spread: 100,
-            wet: 1.0
+            wet: 1
         });
 
         let comp: any = new Tone.Compressor(-30, 20);
-        let masterVolume: any = new Tone.Volume(10);
+        let masterVolume: any = new Tone.Volume(-30);
 
-        this.oscillatorNode.connect(vibrato);
+        this.oscillatorNode.connect(this.lfModel);
+        this.lfModel.connect(vibrato);
         vibrato.chain(tremolo, comp, masterVolume).toMaster();
     }
 
@@ -42,6 +46,7 @@ export default class Note2 implements IDisposable {
     }
 
     public modulate(this: Note2, modulation: ModulationEvent): void {
+
         this.oscillatorNode.frequency.setValueAtTime(
             this.mapRange(modulation.absolute, 100, 880),
             this.audioContext.currentTime);
@@ -49,6 +54,7 @@ export default class Note2 implements IDisposable {
 
     public noteOff(this: Note2): void {
         this.oscillatorNode.stop();
+        this.lfModel.disconnect();
     }
 
     private mapRange(this: Note2, value: number, min: number, max: number): number {

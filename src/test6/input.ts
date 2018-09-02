@@ -1,4 +1,5 @@
 import "./input.css";
+import "./notes/lfModel.js";
 
 import * as Rx from "rxjs/Rx";
 import * as template from "!raw-loader!./input.html";
@@ -53,6 +54,15 @@ export default class Input implements IDisposable {
         this.numberActiveNoteHandlers = 0;
         this.lastCreatedAt = new Date(0);
 
+        // load worklet in audio context
+        let audioContext: AudioContext = new AudioContext();
+        Rx.Observable.fromPromise(audioContext.audioWorklet.addModule("./lfModel.js"))
+            .take(1)
+            .subscribe(
+                () => console.log("Worklet processor loaded"),
+                (error: any) => console.error(error)
+            );
+
         this.sub = signal$.subscribe(() => {
 
             if (this.canStartNote()) {
@@ -60,7 +70,7 @@ export default class Input implements IDisposable {
                 this.numberActiveNoteHandlers++;
                 this.lastCreatedAt = new Date();
 
-                NoteHandler.startNote(signal$, () => this.numberActiveNoteHandlers--);
+                NoteHandler.startNote(audioContext, signal$, () => this.numberActiveNoteHandlers--);
             }
         });
     }

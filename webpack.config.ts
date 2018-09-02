@@ -6,15 +6,19 @@ const config: webpack.Configuration = {
 
     entry: "./src/main.ts",
     devtool: "source-map",
-    devServer: {
-        contentBase: "./dist"
-    },
     module: {
         rules: [
             {
                 test: /\.ts$/,
                 use: "ts-loader",
                 exclude: /node_modules/
+            },
+            {
+                test: /lfModel\.js$/,
+                loader: "file-loader",
+                options: {
+                    name: "[name].[ext]"
+                }
             },
             {
                 test: /\.css$/,

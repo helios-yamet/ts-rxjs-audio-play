@@ -7,9 +7,9 @@ type SignalEvent = [number, number, number]; // first value, latest value and ti
 
 export default class NoteHandler {
 
-    static startNote(signal$: Rx.Observable<number>, done: () => void): void {
+    static startNote(audioContext: AudioContext, signal$: Rx.Observable<number>, done: () => void): void {
 
-        let note: Note = new Note(Math.random() > .5);
+        let note: Note = new Note(audioContext);
         note.noteOn();
 
         signal$

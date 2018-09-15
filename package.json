@@ -5,8 +5,7 @@
   "main": "./dist/main.js",
   "scripts": {
     "build": "webpack",
-    "watch": "webpack --progress --watch",
-    "start": "webpack-dev-server --open"
+    "dev": " tsc --project ./src/core/worklet --watch | webpack-dev-server --open"
   },
   "author": "Florian Poulin",
   "license": "MIT",

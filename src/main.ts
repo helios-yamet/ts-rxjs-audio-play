@@ -1,45 +1,36 @@
-
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./styles.css";
 import "./index.html";
 
 import * as $ from "jquery";
+import * as template from "!raw-loader!./ui/template.html";
 
-import Test1 from "./test1/script";
-import Test2 from "./test2/script";
-import Test3 from "./test3/script";
-import Test4 from "./test4/script";
-import Test5 from "./test5/script";
-import Test6 from "./test6/script";
+import Input from "./core/input";
+import InputController from "./core/inputController";
 
-let currentTest: IDisposable = new Test6();
+export default class Main implements IDisposable {
 
-$("#test1").on("click", () => {
+    private inputController: InputController;
+    private input: Input;
+
+    constructor() {
+
+        $("#content").html(template);
+
+        this.inputController = new InputController();
+        this.input = new Input("main-controls-container", "input", this.inputController);
+    }
+
+    dispose(): void {
+
+        this.inputController.dispose();
+        this.input.dispose();
+    }
+}
+
+let currentTest: IDisposable = new Main();
+
+$("#home").on("click", () => {
     currentTest.dispose();
-    currentTest = new Test1();
-});
-
-$("#test2").on("click", () => {
-    currentTest.dispose();
-    currentTest = new Test2();
-});
-
-$("#test3").on("click", () => {
-    currentTest.dispose();
-    currentTest = new Test3();
-});
-
-$("#test4").on("click", () => {
-    currentTest.dispose();
-    currentTest = new Test4();
-});
-
-$("#test5").on("click", () => {
-    currentTest.dispose();
-    currentTest = new Test5();
-});
-
-$("#test6").on("click", () => {
-    currentTest.dispose();
-    currentTest = new Test6();
+    currentTest = new Main();
 });

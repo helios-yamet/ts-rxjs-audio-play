@@ -5,8 +5,13 @@ declare module '!raw-loader!*' {
   export = contents
 }
 
+declare module '!file-loader!*' {
+  const contents: string
+  export = contents
+}
+
 declare module 'tone';
 
-interface IDisposable {
+declare interface IDisposable {
   dispose(): void;
 }

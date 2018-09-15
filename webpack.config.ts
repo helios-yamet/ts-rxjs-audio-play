@@ -5,20 +5,13 @@ import * as webpack from "webpack";
 const config: webpack.Configuration = {
 
     entry: "./src/main.ts",
-    devtool: "source-map",
+    devtool: "inline-source-map",
     module: {
         rules: [
             {
                 test: /\.ts$/,
                 use: "ts-loader",
                 exclude: /node_modules/
-            },
-            {
-                test: /lfModel\.js$/,
-                loader: "file-loader",
-                options: {
-                    name: "[name].[ext]"
-                }
             },
             {
                 test: /\.css$/,
@@ -28,22 +21,11 @@ const config: webpack.Configuration = {
                 })
             },
             {
-                test: /\.(png|svg|jpg|gif)$/,
+                test: /\.(html|woff|woff2|eot|ttf|otf|png|svg|jpg|gif)$/,
                 loader: "file-loader",
                 options: {
                     name: "[name].[ext]"
                 }
-            },
-            {
-                test: /\.html$/,
-                loader: "file-loader",
-                options: {
-                    name: "[name].[ext]"
-                }
-            },
-            {
-                test: /\.(woff|woff2|eot|ttf|otf)$/,
-                use: "file-loader"
             }
         ]
     },
@@ -55,7 +37,7 @@ const config: webpack.Configuration = {
         path: path.resolve(__dirname, "dist")
     },
     plugins: [
-        new extractTextPlugin("styles.css"),
+        new extractTextPlugin("styles.css")
     ]
 };
 

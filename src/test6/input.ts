@@ -1,11 +1,12 @@
 import "./input.css";
-import "./notes/lfModel.js";
 
-import * as Rx from "rxjs/Rx";
+import * as lfModule from "!file-loader!./notes/lfModel.js";
 import * as template from "!raw-loader!./input.html";
 import * as $ from "jquery";
-import Knob from "./knob";
+import * as Rx from "rxjs/Rx";
+
 import InputController from "./inputController";
+import Knob from "./knob";
 import NoteHandler from "./noteHandler";
 
 const TEMPLATE_KNOB_ID: string = "##ID##";
@@ -56,10 +57,10 @@ export default class Input implements IDisposable {
 
         // load worklet in audio context
         let audioContext: AudioContext = new AudioContext();
-        Rx.Observable.fromPromise(audioContext.audioWorklet.addModule("./lfModel.js"))
+        Rx.Observable.fromPromise(audioContext.audioWorklet.addModule(lfModule))
             .take(1)
             .subscribe(
-                () => console.log("Worklet processor loaded"),
+                () => console.log(`Worklet processor '${lfModule}' loaded`),
                 (error: any) => console.error(error)
             );
 

@@ -88,15 +88,15 @@ export default class Note1 implements IDisposable {
 
     public noteOn(this: Note1): void {
         console.log(`Playing ${this.toggle ? "AAAAAAAAaaaaaaaaaaa" : "OOOOOOOOOoooooooooo"}`);
-        this.getFormants().forEach(f => f.start());
+        this.getFormants().forEach((f) => f.start());
     }
 
     public modulate(this: Note1, modulation: ModulationEvent): void {
-        this.getFormants().forEach(f => f.frequency.value = this.mapRange(modulation.absolute, 60, 300));
+        this.getFormants().forEach((f) => f.frequency.value = this.mapRange(modulation.absolute, 60, 300));
     }
 
     public noteOff(this: Note1): void {
-        this.getFormants().forEach(f => f.stop());
+        this.getFormants().forEach((f) => f.stop());
     }
 
     private mapRange(this: Note1, value: number, min: number, max: number): number {

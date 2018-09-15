@@ -1,17 +1,14 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "ES2016",
     "module": "commonjs",
-    "allowJs": true,
+    "outDir": "../src/test6/notes",
     "sourceMap": true,
     "strict": true,
     "noImplicitAny": true,
     "skipLibCheck": true
   },
-  "include": [
-    "./src/**/*"
-  ],
-  "exclude": [
-    "./worklet/**/*"
+  "files": [
+      "lfModel.ts"
   ]
 }

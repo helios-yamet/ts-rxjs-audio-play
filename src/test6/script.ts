@@ -3,8 +3,8 @@ import "./styles.css";
 import * as template from "!raw-loader!./template.html";
 import * as $ from "jquery";
 
-import InputController from "./inputController";
 import Input from "./input";
+import InputController from "./inputController";
 
 export default class Test6 implements IDisposable {
 

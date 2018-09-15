@@ -26,7 +26,7 @@ export default class Note2 implements IDisposable {
         });
 
         let comp: any = new Tone.Compressor(-30, 20);
-        let masterVolume: any = new Tone.Volume(0);
+        let masterVolume: any = new Tone.Volume(-10);
 
         this.oscillatorNode.connect(this.lfModel);
         this.lfModel.connect(vibrato);

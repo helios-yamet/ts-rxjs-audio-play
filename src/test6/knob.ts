@@ -1,8 +1,8 @@
 import "./knob.css";
 
-import * as Rx from "rxjs/Rx";
 import * as template from "!raw-loader!./knob.html";
 import * as $ from "jquery";
+import * as Rx from "rxjs/Rx";
 
 const TEMPLATE_KNOB_ID: string = "##ID##";
 const TEMPLATE_LABEL: string = "##LABEL##";

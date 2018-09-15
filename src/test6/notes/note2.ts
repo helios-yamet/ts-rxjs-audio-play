@@ -18,27 +18,20 @@ export default class Note2 implements IDisposable {
         Tone.setContext(this.audioContext);
 
         let vibrato: any = new Tone.Vibrato({
-            maxDelay: 0.1,
-            frequency: 100,
-            depth: .1,
+            maxDelay: .1,
+            frequency: 5,
+            depth: 10,
             type: "sine",
-            wet: 1
-        });
-
-        let tremolo: any = new Tone.Tremolo({
-            frequency: 50,
-            type: "triangle",
-            depth: 0.2,
-            spread: 100,
-            wet: 1
+            wet: 0.5
         });
 
         let comp: any = new Tone.Compressor(-30, 20);
-        let masterVolume: any = new Tone.Volume(-30);
+        let masterVolume: any = new Tone.Volume(0);
 
         this.oscillatorNode.connect(this.lfModel);
         this.lfModel.connect(vibrato);
-        vibrato.chain(tremolo, comp, masterVolume).toMaster();
+        vibrato.chain(comp, masterVolume);
+        masterVolume.toMaster();
     }
 
     public noteOn(this: Note2): void {

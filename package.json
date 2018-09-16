@@ -4,8 +4,8 @@
   "description": "Some tests with Rxjs and TS",
   "main": "./dist/main.js",
   "scripts": {
-    "build": "tsc -p ./src/core/worklet && webpack",
-    "watch": "tsc -p ./src/core/worklet -w | webpack-dev-server --open"
+    "build": "webpack",
+    "watch": "webpack-dev-server --open"
   },
   "author": "Florian Poulin",
   "license": "MIT",

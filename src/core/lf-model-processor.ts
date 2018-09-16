@@ -1,9 +1,14 @@
-/// <reference path="./typings.d.ts" />
-
 class LfModel extends AudioWorkletProcessor {
 
     constructor() {
         super();
+    }
+
+    static get parameterDescriptors(): ProcessorParams[] {
+        return [{
+            name: "noiseLevel",
+            defaultValue: 0.0
+        }];
     }
 
     process(
@@ -14,17 +19,19 @@ class LfModel extends AudioWorkletProcessor {
         let input: Float32Array[] = inputs[0];
         let output: Float32Array[] = outputs[0];
 
-        for (let channel: number = 0; channel < output.length; ++channel) {
+        for (let channel: number = 0; channel < output.length; channel++) {
+
             let outputChannel: Float32Array = output[channel];
             let inputChannel: Float32Array = input[channel];
-            for (let i: number = 0; i < outputChannel.length; ++i) {
-                outputChannel[i] = inputChannel[i] + 0.5 * (Math.random() * 1.6);
+
+            for (let i: number = 0; i < outputChannel.length; i++) {
+                outputChannel[i] = inputChannel[i] + (Math.random() * parameters.noiseLevel[i]);
             }
         }
 
-        console.log(inputs.length);
+        this.port.postMessage("Hi!");
         return true;
     }
 }
 
-registerProcessor("lf-model", LfModel);
+registerProcessor("lf-model-processor", LfModel);

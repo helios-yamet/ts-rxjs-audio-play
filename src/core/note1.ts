@@ -1,5 +1,5 @@
 import * as Tone from "tone";
-import { ModulationEvent } from "./noteHandler";
+import { ModulationEvent } from "./note-handler";
 
 export default class Note1 implements IDisposable {
 

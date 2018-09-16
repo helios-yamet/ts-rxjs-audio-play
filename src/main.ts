@@ -6,7 +6,7 @@ import * as $ from "jquery";
 import * as template from "!raw-loader!./ui/template.html";
 
 import Input from "./core/input";
-import InputController from "./core/inputController";
+import InputController from "./core/input-controller";
 
 export default class Main implements IDisposable {
 

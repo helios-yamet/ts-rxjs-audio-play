@@ -3,7 +3,7 @@ import "./oscillator.css";
 import * as template from "!raw-loader!./oscillator.html";
 import * as $ from "jquery";
 import Knob from "./knob";
-import InputController from "../core/inputController";
+import InputController from "../core/input-controller";
 
 const TEMPLATE_KNOB_ID: string = "##ID##";
 const TEMPLATE_LABEL: string = "##LABEL##";

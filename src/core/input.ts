@@ -1,9 +1,9 @@
-import * as lfModule from "!file-loader!./worklet/lfModel.js";
+import * as lfModule from "!file-loader?name=[name].js!ts-loader!./lf-model-processor.ts";
 import * as Rx from "rxjs/Rx";
 
-import InputController from "./inputController";
+import InputController from "./input-controller";
 import Oscillator from "../ui/oscillator";
-import NoteHandler from "./noteHandler";
+import NoteHandler from "./note-handler";
 
 export default class Input implements IDisposable {
 

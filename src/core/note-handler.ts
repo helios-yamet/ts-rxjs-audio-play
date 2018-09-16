@@ -1,29 +1,31 @@
 import * as Rx from "rxjs/Rx";
-import Note from "./note2";
+import SoundUnit from "./sound-unit";
 
 const DEBOUNCE_MILLIS: number = 500;
 
 type SignalEvent = [number, number, number]; // first value, latest value and time
 
+/**
+ * Class responsible for the life-cycle of a particular "note". It analyzes the input
+ * signal and modulates the given sound unit (until the end of the note life).
+ */
 export default class NoteHandler {
 
-    static startNote(audioContext: AudioContext, signal$: Rx.Observable<number>, done: () => void): void {
+    static startNote(soundUnit: SoundUnit, signal$: Rx.Observable<number>, done: () => void): void {
 
-        let note: Note = new Note(audioContext);
-        note.noteOn();
-
+        soundUnit.noteOn();
         signal$
+            .takeUntil(signal$.debounceTime(DEBOUNCE_MILLIS))
             .scan<number, SignalEvent>((acc:SignalEvent, value: number, index: number) =>
                 [index === 0 ? value : acc[0], value, Rx.Scheduler.animationFrame.now()],
                 [0, 0, 0])
             .pairwise()
-            .takeUntil(signal$.debounceTime(DEBOUNCE_MILLIS))
             .subscribe(
-                (value: SignalEvent[]) => note.modulate(new ModulationEvent(value)),
+                (value: SignalEvent[]) => soundUnit.modulate(new ModulationEvent(value)),
                 (error: any) => console.error(error),
                 () => {
-                    note.noteOff();
-                    note.dispose();
+                    soundUnit.noteOff();
+                    soundUnit.dispose();
                     done();
                 });
     }

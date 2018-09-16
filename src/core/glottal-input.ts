@@ -1,20 +1,20 @@
 import * as lfModule from "!file-loader?name=[name].js!ts-loader!./lf-model-processor.ts";
 import * as Rx from "rxjs/Rx";
 
+import GlottalSynthetizer from "./glottal-synthetizer";
 import InputController from "./input-controller";
-import Oscillator from "../ui/oscillator";
 import NoteHandler from "./note-handler";
+import Panel from "../ui/panel";
 
-export default class Input implements IDisposable {
+export default class GlottalInput implements IDisposable {
 
     public id: string;
-    private oscillator: Oscillator;
+    private panel: Panel;
 
     private inputController: InputController;
     private sub: Rx.Subscription;
 
-    private numberActiveNoteHandlers: number;
-    private lastCreatedAt: Date;
+    private noteActive: boolean;
 
     constructor(
         containerId: string,
@@ -25,19 +25,22 @@ export default class Input implements IDisposable {
         this.inputController = inputController;
 
         // create input
-        this.oscillator = new Oscillator(
-            containerId, `${this.id}-input`, `Input ${this.id}`,
+        this.panel = new Panel(
+            containerId, `${this.id}-input`, `Glottal Flow Synthesis`,
+            [{
+                id: "noise",
+                name: "Noise Level",
+                minValue: 0,
+                maxValue: 100,
+                initValue: 0
+            }],
             this.inputController);
-
-        // register input
-        this.inputController.registerKnob(this.oscillator.input);
 
         // pass the knob through a subject
         let signal$: Rx.Subject<number> = new Rx.Subject();
-        this.oscillator.input.subscribe(signal$);
+        this.panel.knobs[0].subscribe(signal$);
 
-        this.numberActiveNoteHandlers = 0;
-        this.lastCreatedAt = new Date(0);
+        this.noteActive = false;
 
         // load worklet in audio context
         let audioContext: AudioContext = new AudioContext();
@@ -49,25 +52,15 @@ export default class Input implements IDisposable {
             );
 
         this.sub = signal$.subscribe(() => {
-
-            if (this.canStartNote()) {
-
-                this.numberActiveNoteHandlers++;
-                this.lastCreatedAt = new Date();
-
-                NoteHandler.startNote(audioContext, signal$, () => this.numberActiveNoteHandlers--);
+            if (!this.noteActive) {
+                this.noteActive = true;
+                NoteHandler.startNote(new GlottalSynthetizer(audioContext), signal$, () => this.noteActive = false);
             }
         });
     }
 
-    canStartNote(this: Input): boolean {
-        let now: Date = new Date();
-        return this.numberActiveNoteHandlers < 1 &&
-            now.getTime() - this.lastCreatedAt.getTime() > 1000;
-    }
-
     dispose(): void {
         this.sub.unsubscribe();
-        this.oscillator.dispose();
+        this.panel.dispose();
     }
 }

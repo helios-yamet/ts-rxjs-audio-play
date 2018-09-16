@@ -5,26 +5,30 @@ import "./index.html";
 import * as $ from "jquery";
 import * as template from "!raw-loader!./ui/template.html";
 
-import Input from "./core/input";
+import GlottalInput from "./core/glottal-input";
 import InputController from "./core/input-controller";
+import FormantsInput from "./core/formants-input";
 
 export default class Main implements IDisposable {
 
     private inputController: InputController;
-    private input: Input;
+    private input1: FormantsInput;
+    private input2: GlottalInput;
 
     constructor() {
 
         $("#content").html(template);
 
         this.inputController = new InputController();
-        this.input = new Input("main-controls-container", "input", this.inputController);
+        this.input1= new FormantsInput("main-controls-container", "formants", this.inputController);
+        this.input2 = new GlottalInput("main-controls-container", "glottal", this.inputController);
     }
 
     dispose(): void {
 
         this.inputController.dispose();
-        this.input.dispose();
+        this.input1.dispose();
+        this.input2.dispose();
     }
 }
 

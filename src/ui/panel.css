@@ -1,4 +1,4 @@
-.osc {
+.pan {
 
     /* positioning */
     position: relative;
@@ -12,7 +12,7 @@
     background-color: rgb(237, 239, 240);
 }
 
-.osc-label {
+.pan-label {
 
     /* box-model */
     width: 100%;

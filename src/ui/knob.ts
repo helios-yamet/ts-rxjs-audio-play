@@ -13,7 +13,6 @@ export default class Knob extends Rx.BehaviorSubject<number> implements IDisposa
     public minValue: number;
     public maxValue: number;
 
-    private label: string;
     private subscriptions: Rx.Subscription[];
     private displayValue: (value: number) => string;
 
@@ -35,7 +34,6 @@ export default class Knob extends Rx.BehaviorSubject<number> implements IDisposa
         super(initialValue);
 
         this.id = id;
-        this.label = label;
         this.subscriptions = [];
         this.minValue = minValue;
         this.maxValue = maxValue;
@@ -72,7 +70,7 @@ export default class Knob extends Rx.BehaviorSubject<number> implements IDisposa
         let mouseDown$: Rx.Observable<MouseEvent> = Rx.Observable.fromEvent(this.$knobDragArea.get(0), "mousedown");
         let mouseMove$: Rx.Observable<MouseEvent> = Rx.Observable.fromEvent(document, "mousemove");
         let mouseUp$: Rx.Observable<MouseEvent> = Rx.Observable.fromEvent(document, "mouseup");
-        let mouseDrag$: Rx.Observable<number> = mouseDown$.flatMap((downEvent: MouseEvent, index: number) => {
+        let mouseDrag$: Rx.Observable<number> = mouseDown$.flatMap((downEvent: MouseEvent) => {
 
             downEvent.preventDefault();
             let startY: number = downEvent.screenY;

@@ -2,8 +2,9 @@ import * as Tone from "tone";
 
 import LfModelNode from "./lf-model-node";
 import { ModulationEvent } from "./note-handler";
+import SoundUnit from "./sound-unit";
 
-export default class Note2 implements IDisposable {
+export default class GlottalSynthesizer extends SoundUnit {
 
     private audioContext: AudioContext;
     private lfModel: LfModelNode;
@@ -11,8 +12,11 @@ export default class Note2 implements IDisposable {
 
     constructor(audioContext: AudioContext) {
 
+        super();
+
         // build an audio graph starting from native Web Audio
         this.audioContext = audioContext;
+
         this.oscillatorNode = this.audioContext.createOscillator();
         this.oscillatorNode.frequency.setValueAtTime(0, this.audioContext.currentTime);
         this.lfModel = new LfModelNode(this.audioContext);
@@ -38,11 +42,11 @@ export default class Note2 implements IDisposable {
         masterVolume.toMaster();
     }
 
-    public noteOn(this: Note2): void {
+    public noteOn(this: GlottalSynthesizer): void {
         this.oscillatorNode.start();
     }
 
-    public modulate(this: Note2, modulation: ModulationEvent): void {
+    public modulate(this: GlottalSynthesizer, modulation: ModulationEvent): void {
 
         this.oscillatorNode.frequency.setValueAtTime(
             this.mapRange(modulation.absolute, 100, 880),
@@ -53,13 +57,10 @@ export default class Note2 implements IDisposable {
             this.audioContext.currentTime);
     }
 
-    public noteOff(this: Note2): void {
+    public noteOff(this: GlottalSynthesizer): void {
+        console.log("Glottal note off");
         this.oscillatorNode.stop();
         this.lfModel.disconnect();
-    }
-
-    private mapRange(this: Note2, value: number, min: number, max: number): number {
-        return min + (max - min) * value / 100;
     }
 
     dispose(): void {

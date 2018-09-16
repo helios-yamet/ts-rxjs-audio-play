@@ -1,6 +1,10 @@
 import * as Rx from "rxjs/Rx";
 import Knob from "../ui/knob";
 
+/**
+ * Utility class to control an incoming signal from various places (MIDI and
+ * key board as of today). Some fiddling with RXjs, mostly.
+ */
 export default class InputController implements IDisposable {
 
     private knobs: Knob[];
@@ -22,6 +26,7 @@ export default class InputController implements IDisposable {
     registerKnob = (knob: Knob) => {
         this.knobs.push(knob);
         this.selectKnob(knob);
+        console.log(`registered knob ${knob.id}`);
     }
 
     selectKnob = (knob: Knob) => {
@@ -52,9 +57,7 @@ export default class InputController implements IDisposable {
     }
 
     dispose(): void {
-        this.subscriptions.forEach(s => {
-            s.unsubscribe();
-        });
+        this.subscriptions.forEach(s => s.unsubscribe());
     }
 
     /**
@@ -86,6 +89,7 @@ export default class InputController implements IDisposable {
                     let normalizedValue: number = Math.round(
                         this.activeKnob.minValue + ratio * (this.activeKnob.maxValue - this.activeKnob.minValue));
                     this.activeKnob.next(normalizedValue);
+                    console.log(`Pushing a value to ${this.activeKnob.id}`);
                 }
             },
             error => console.error(error)
@@ -117,7 +121,7 @@ export default class InputController implements IDisposable {
             .filter((digit) => digit >= 0)
             .buffer(debounceBreak$)
             .filter((digits) => digits.length > 0)
-            .map((digits: number[], y: number) => {
+            .map((digits: number[]) => {
                 let value: number = 0;
                 digits.reverse().forEach((digit: number, index: number) => {
                     value += Math.pow(10, index) * digit;

@@ -1,5 +1,7 @@
 class LfModel extends AudioWorkletProcessor {
 
+    private active: boolean = true; // todo see how to manage this...
+
     constructor() {
         super();
     }
@@ -29,8 +31,8 @@ class LfModel extends AudioWorkletProcessor {
             }
         }
 
-        this.port.postMessage("Hi!");
-        return true;
+        this.port.postMessage("Hi, I'm useless at this stage.");
+        return this.active;
     }
 }
 

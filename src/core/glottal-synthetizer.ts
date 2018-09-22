@@ -52,8 +52,8 @@ export default class GlottalSynthesizer extends SoundUnit {
             this.mapRange(modulation.absolute, 100, 880),
             this.audioContext.currentTime);
 
-        this.lfModel.getNoiseLevelParam().setValueAtTime(
-            this.mapRange(modulation.absolute, 0, 1),
+        this.lfModel.getShapeParam().setValueAtTime(
+            this.mapRange(modulation.absolute, 0.3, 2.7),
             this.audioContext.currentTime);
     }
 

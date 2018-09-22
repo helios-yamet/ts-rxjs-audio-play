@@ -12,8 +12,6 @@ const TEMPLATE_LABEL: string = "##LABEL##";
 export default class GlobalOutput implements IDisposable {
 
     public id: string;
-    private label: string;
-
     public volume: Knob;
 
     private inputController: InputController;
@@ -25,7 +23,6 @@ export default class GlobalOutput implements IDisposable {
         inputController: InputController) {
 
         this.id = id;
-        this.label = label;
         this.inputController = inputController;
 
         // render oscillator container

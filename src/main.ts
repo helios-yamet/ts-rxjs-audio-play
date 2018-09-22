@@ -8,12 +8,15 @@ import * as template from "!raw-loader!./ui/template.html";
 import GlottalInput from "./core/glottal-input";
 import InputController from "./core/input-controller";
 import FormantsInput from "./core/formants-input";
+import FunctionPlotter from "./ui/function-plotter";
+import LfModelNode, { LfFunction } from "./core/lf-model-node";
 
 export default class Main implements IDisposable {
 
     private inputController: InputController;
     private input1: FormantsInput;
     private input2: GlottalInput;
+    private plot: FunctionPlotter;
 
     constructor() {
 
@@ -22,6 +25,10 @@ export default class Main implements IDisposable {
         this.inputController = new InputController();
         this.input1= new FormantsInput("main-controls-container", "formants", this.inputController);
         this.input2 = new GlottalInput("main-controls-container", "glottal", this.inputController);
+
+        let lf: LfFunction = LfModelNode.waveformFunction(1);
+        this.plot = new FunctionPlotter("main-controls-container", "plotter", "Plotter",
+            lf.f, ["Ts", "Tp", "Te", "Ta", "Tc"], [0, lf.tp, lf.te, lf.ta, lf.tc]);
     }
 
     dispose(): void {

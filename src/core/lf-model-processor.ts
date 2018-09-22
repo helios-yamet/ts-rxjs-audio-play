@@ -8,8 +8,8 @@ class LfModel extends AudioWorkletProcessor {
 
     static get parameterDescriptors(): ProcessorParams[] {
         return [{
-            name: "noiseLevel",
-            defaultValue: 0.0
+            name: "shapeParam",
+            defaultValue: 1
         }];
     }
 
@@ -27,7 +27,7 @@ class LfModel extends AudioWorkletProcessor {
             let inputChannel: Float32Array = input[channel];
 
             for (let i: number = 0; i < outputChannel.length; i++) {
-                outputChannel[i] = inputChannel[i] + (Math.random() * parameters.noiseLevel[i]);
+                outputChannel[i] = inputChannel[i] + (Math.random() * parameters.shapeParam[i]);
             }
         }
 

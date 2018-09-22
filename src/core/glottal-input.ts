@@ -44,6 +44,7 @@ export default class GlottalInput implements IDisposable {
 
         // load worklet in audio context
         let audioContext: AudioContext = new AudioContext();
+        console.log(`Sample rate: ${audioContext.sampleRate}`);
         Rx.Observable.fromPromise(audioContext.audioWorklet.addModule(lfModule))
             .take(1)
             .subscribe(

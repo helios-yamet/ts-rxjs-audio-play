@@ -33,4 +33,6 @@ declare function registerProcessor(name: string, impl: any): void;
 declare interface ProcessorParams {
   name: string;
   defaultValue: number;
+  minValue?: number;
+  maxValue?: number;
 }

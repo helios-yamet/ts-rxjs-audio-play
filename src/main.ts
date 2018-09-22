@@ -28,7 +28,7 @@ export default class Main implements IDisposable {
 
         let lf: LfFunction = LfModelNode.waveformFunction(1);
         this.plot = new FunctionPlotter("main-controls-container", "plotter", "Plotter",
-            lf.f, ["Ts", "Tp", "Te", "Ta", "Tc"], [0, lf.tp, lf.te, lf.ta, lf.tc]);
+            lf.f, ["Ts", "Tp", "Te", "Tc"], [0, lf.tp, lf.te, lf.tc]);
     }
 
     dispose(): void {

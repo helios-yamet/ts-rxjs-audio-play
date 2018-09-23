@@ -8,6 +8,7 @@ export default class GlottalSynthesizer extends SoundUnit {
 
     private audioContext: AudioContext;
     private lfModel: LfModelNode;
+    private vibrato: any;
 
     constructor(audioContext: AudioContext, frequency: number) {
 
@@ -18,30 +19,28 @@ export default class GlottalSynthesizer extends SoundUnit {
 
         this.lfModel = new LfModelNode(this.audioContext);
         this.lfModel.port.onmessage = (msg) => console.log(`Message from sound processor: ${msg.data}`);
-
-        console.log(`Setting frequency to '${frequency}'`);
         this.lfModel.getFrequency().setValueAtTime(frequency, audioContext.currentTime);
 
-        /* // continue the end of the graph on Tone.js
+        // continue the end of the graph on Tone.js
         Tone.setContext(this.audioContext);
-        let vibrato: any = new Tone.Vibrato({
-            maxDelay: .1,
+        this.vibrato = new Tone.Vibrato({
+            maxDelay: 0.005,
             frequency: 5,
-            depth: 10,
+            depth: .1,
             type: "sine",
-            wet: 0.5
+            wet: 1
         });
 
         let comp: any = new Tone.Compressor(-30, 20);
         let masterVolume: any = new Tone.Volume(0);
 
         // link it all together
-        vibrato.chain(comp, masterVolume);
-        masterVolume.toMaster(); */
+        this.vibrato.chain(comp, masterVolume);
+        masterVolume.toMaster();
     }
 
     public noteOn(this: GlottalSynthesizer): void {
-        this.lfModel.connect(this.audioContext.destination);
+        this.lfModel.connect(this.vibrato);
     }
 
     public modulate(this: GlottalSynthesizer, modulation: ModulationEvent): void {
@@ -49,7 +48,6 @@ export default class GlottalSynthesizer extends SoundUnit {
     }
 
     public noteOff(this: GlottalSynthesizer): void {
-        console.log("Glottal note off");
         this.lfModel.disconnect();
     }
 

@@ -27,7 +27,7 @@ export default class Main implements IDisposable {
         this.input2 = new GlottalInput("main-controls-container", "glottal", this.inputController);
 
         let lf: LfFunction = LfModelNode.waveformFunction(1);
-        this.plot = new FunctionPlotter("main-controls-container", "plotter", "Plotter",
+        this.plot = new FunctionPlotter("main-controls-container", "plotter", "LF-Model waveform for Rd = 1",
             lf.f, ["Ts", "Tp", "Te", "Tc"], [0, lf.tp, lf.te, lf.tc]);
     }
 

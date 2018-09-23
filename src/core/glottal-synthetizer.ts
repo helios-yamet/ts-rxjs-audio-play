@@ -8,7 +8,6 @@ export default class GlottalSynthesizer extends SoundUnit {
 
     private audioContext: AudioContext;
     private lfModel: LfModelNode;
-    private oscillatorNode: OscillatorNode;
 
     constructor(audioContext: AudioContext) {
 
@@ -17,12 +16,10 @@ export default class GlottalSynthesizer extends SoundUnit {
         // build an audio graph starting from native Web Audio
         this.audioContext = audioContext;
 
-        this.oscillatorNode = this.audioContext.createOscillator();
-        this.oscillatorNode.frequency.setValueAtTime(0, this.audioContext.currentTime);
         this.lfModel = new LfModelNode(this.audioContext);
         this.lfModel.port.onmessage = (msg) => console.log(`Message from sound processor: ${msg.data}`);
 
-        // continue the end of the graph on Tone.js
+        /* // continue the end of the graph on Tone.js
         Tone.setContext(this.audioContext);
         let vibrato: any = new Tone.Vibrato({
             maxDelay: .1,
@@ -36,30 +33,20 @@ export default class GlottalSynthesizer extends SoundUnit {
         let masterVolume: any = new Tone.Volume(0);
 
         // link it all together
-        this.oscillatorNode.connect(this.lfModel);
-        this.lfModel.connect(vibrato);
         vibrato.chain(comp, masterVolume);
-        masterVolume.toMaster();
+        masterVolume.toMaster(); */
     }
 
     public noteOn(this: GlottalSynthesizer): void {
-        this.oscillatorNode.start();
+        this.lfModel.connect(this.audioContext.destination);
     }
 
     public modulate(this: GlottalSynthesizer, modulation: ModulationEvent): void {
-
-        this.oscillatorNode.frequency.setValueAtTime(
-            this.mapRange(modulation.absolute, 100, 880),
-            this.audioContext.currentTime);
-
-        this.lfModel.getShapeParam().setValueAtTime(
-            this.mapRange(modulation.absolute, 0.3, 2.7),
-            this.audioContext.currentTime);
+        this.lfModel.getShapeParam().setValueAtTime(this.mapRange(modulation.absolute, 0.3, 2.7), 0);
     }
 
     public noteOff(this: GlottalSynthesizer): void {
         console.log("Glottal note off");
-        this.oscillatorNode.stop();
         this.lfModel.disconnect();
     }
 

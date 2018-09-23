@@ -28,11 +28,11 @@ export default class GlottalInput implements IDisposable {
         this.panel = new Panel(
             containerId, `${this.id}-input`, `Glottal Flow Synthesis`,
             [{
-                id: "noise",
-                name: "Noise Level",
+                id: "rd",
+                name: "Shape Param",
                 minValue: 0,
                 maxValue: 100,
-                initValue: 0
+                initValue: 50
             }],
             this.inputController);
 

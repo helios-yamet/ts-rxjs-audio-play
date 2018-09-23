@@ -28,6 +28,13 @@ export default class GlottalInput implements IDisposable {
         this.panel = new Panel(
             containerId, `${this.id}-input`, `Glottal Flow Synthesis`,
             [{
+                id: "freq",
+                name: "Frequency",
+                minValue: 30,
+                maxValue: 250,
+                initValue: 120
+            },
+            {
                 id: "rd",
                 name: "Shape Param",
                 minValue: 0,
@@ -38,7 +45,7 @@ export default class GlottalInput implements IDisposable {
 
         // pass the knob through a subject
         let signal$: Rx.Subject<number> = new Rx.Subject();
-        this.panel.knobs[0].subscribe(signal$);
+        this.panel.knobs[1].subscribe(signal$);
 
         this.noteActive = false;
 
@@ -55,7 +62,9 @@ export default class GlottalInput implements IDisposable {
         this.sub = signal$.subscribe(() => {
             if (!this.noteActive) {
                 this.noteActive = true;
-                NoteHandler.startNote(new GlottalSynthetizer(audioContext), signal$, () => this.noteActive = false);
+                NoteHandler.startNote(
+                    new GlottalSynthetizer(audioContext, this.panel.knobs[0].value),
+                    signal$, () => this.noteActive = false);
             }
         });
     }

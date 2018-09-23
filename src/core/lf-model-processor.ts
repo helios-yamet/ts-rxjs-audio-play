@@ -9,8 +9,7 @@ class LfModel extends AudioWorkletProcessor {
     private frequencyValue: number = INIT_FREQUENCY;
     private shapeParamValue: number = INIT_SHAPE_PARAM;
     private currentFunction: LfFunction = LfFunction.createWaveform(INIT_SHAPE_PARAM);
-
-    private framesPerWaveformCycle: number = SAMPLE_RATE / INIT_FREQUENCY;
+    private framesPerWaveformCycle: number = Math.floor(SAMPLE_RATE / INIT_FREQUENCY);
     private frameInWaveform: number = 0;
 
     private active: boolean = true; // todo see how to manage this...
@@ -38,19 +37,17 @@ class LfModel extends AudioWorkletProcessor {
         // resolve next render quantum (128 frames)
         for (let frame: number = 0; frame < QUANTUM_FRAMES; frame++) {
 
-            // check if it's time to move on to a new cycle
-            if (++this.frameInWaveform === this.framesPerWaveformCycle) {
-                this.frameInWaveform = 0;
+            if (this.frameInWaveform === 0) {
 
-                // if params have changed since last cycle, let's udpdate for next cycle
+                // if params have changed since last cycle, let's adjust for the next cycle
                 // (note: for some reason, only getting the param value for the first frame...)
                 let newFrequency: number = parameters.frequency[0];
-                if (newFrequency && newFrequency !== this.frequencyValue) {
+                if (newFrequency !== this.frequencyValue) {
                     this.frequencyValue = newFrequency;
-                    this.framesPerWaveformCycle = SAMPLE_RATE / this.frequencyValue;
+                    this.framesPerWaveformCycle = Math.floor(SAMPLE_RATE / this.frequencyValue);
                 }
                 let newShapeParam: number = parameters.shapeParam[0];
-                if (newShapeParam && newShapeParam !== this.shapeParamValue) {
+                if (newShapeParam !== this.shapeParamValue) {
                     this.shapeParamValue = newShapeParam;
                     this.currentFunction = LfFunction.createWaveform(this.shapeParamValue);
                 }
@@ -61,6 +58,9 @@ class LfModel extends AudioWorkletProcessor {
             for (let channel: number = 0; channel < output.length; channel++) {
                 output[channel][frame] = sampleValue;
             }
+
+            // move to next frame in waveform (or loop to start)
+            this.frameInWaveform = ++this.frameInWaveform < this.framesPerWaveformCycle ? this.frameInWaveform : 0;
         }
 
         return this.active;

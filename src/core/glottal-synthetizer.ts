@@ -9,7 +9,7 @@ export default class GlottalSynthesizer extends SoundUnit {
     private audioContext: AudioContext;
     private lfModel: LfModelNode;
 
-    constructor(audioContext: AudioContext) {
+    constructor(audioContext: AudioContext, frequency: number) {
 
         super();
 
@@ -18,6 +18,9 @@ export default class GlottalSynthesizer extends SoundUnit {
 
         this.lfModel = new LfModelNode(this.audioContext);
         this.lfModel.port.onmessage = (msg) => console.log(`Message from sound processor: ${msg.data}`);
+
+        console.log(`Setting frequency to '${frequency}'`);
+        this.lfModel.getFrequency().setValueAtTime(frequency, audioContext.currentTime);
 
         /* // continue the end of the graph on Tone.js
         Tone.setContext(this.audioContext);

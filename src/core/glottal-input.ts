@@ -5,6 +5,7 @@ import GlottalSynthetizer from "./glottal-synthetizer";
 import InputController from "./input-controller";
 import NoteHandler from "./note-handler";
 import Panel from "../ui/panel";
+import { Vowel } from "./formants-synthetizer";
 
 export default class GlottalInput implements IDisposable {
 
@@ -64,7 +65,7 @@ export default class GlottalInput implements IDisposable {
             if (!this.noteActive) {
                 this.noteActive = true;
                 NoteHandler.startNote(
-                    new GlottalSynthetizer(audioContext, this.panel.knobs[0].value),
+                    new GlottalSynthetizer(audioContext, this.panel.knobs[0].value, Math.random() < .5 ? Vowel.Aaaa : Vowel.Oooo),
                     this.shapeParam$, () => this.noteActive = false);
             }
         });

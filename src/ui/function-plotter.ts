@@ -32,7 +32,7 @@ export default class FunctionPlotter {
         label: string,
         f: (x: number) => number,
         labels: string[],
-        ticks:number[]) {
+        ticks: number[]) {
 
         this.id = id;
 
@@ -42,30 +42,14 @@ export default class FunctionPlotter {
             .replace(new RegExp(TEMPLATE_LABEL), label);
         $(`#${containerId}`).append(renderedTemplate);
 
-        let i: number = 0;
-        this.chart = new Chartist.Line(
-            $(`.plot`).get(0),
-            {
-                series: [{ data: this.calculatePoints(f) }]
-            },
-            {
-                height: 400,
-                width: 500,
-                lineSmooth: false,
-                showPoint: false,
-                axisX: {
-                    type: Chartist.FixedScaleAxis,
-                    high: 1,
-                    low: 0,
-                    ticks: ticks,
-                    labelInterpolationFnc: (n:any) => {
-                        return labels[i++];
-                    }
-                }
-            });
+        this.chart = new Chartist.Line($(`.plot`).get(0), this.buildData(f), this.buildOptions(labels, ticks));
     }
 
-    calculatePoints = (f: (x: number) => number): Point[] => {
+    updateChart = (f: (x: number) => number, labels: string[], ticks: number[]): void => {
+        this.chart.update(this.buildData(f), this.buildOptions(labels, ticks));
+    }
+
+    private buildData = (f: (x: number) => number): {} => {
 
         let values: Point[] = [];
         for (let i: number = 0; i <= SAMPLES; i++) {
@@ -75,11 +59,31 @@ export default class FunctionPlotter {
             });
         }
 
-        return values;
+        return { series: [{ data: values }] };
     }
 
-    updateChart = (f: (x: number) => number): void => {
-        this.chart.update({ series: [{ data: this.calculatePoints(f) }] });
+    private buildOptions = (labels: string[], ticks: number[]): {} => {
+
+        let i: number = 0;
+        return {
+            height: 150,
+            width: 230,
+            lineSmooth: false,
+            showPoint: false,
+            axisY: {
+                high: 0.6,
+                low: -1
+            },
+            axisX: {
+                type: Chartist.FixedScaleAxis,
+                high: 1,
+                low: 0,
+                ticks: ticks,
+                labelInterpolationFnc: () => {
+                    return labels[i++];
+                }
+            }
+        };
     }
 }
 

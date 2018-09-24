@@ -9,8 +9,9 @@ import Panel from "../ui/panel";
 export default class GlottalInput implements IDisposable {
 
     public id: string;
-    private panel: Panel;
+    public shapeParam$: Rx.Subject<number>;
 
+    private panel: Panel;
     private inputController: InputController;
     private sub: Rx.Subscription;
 
@@ -44,8 +45,8 @@ export default class GlottalInput implements IDisposable {
             this.inputController);
 
         // pass the knob through a subject
-        let signal$: Rx.Subject<number> = new Rx.Subject();
-        this.panel.knobs[1].subscribe(signal$);
+        this.shapeParam$ = new Rx.Subject();
+        this.panel.knobs[1].subscribe(this.shapeParam$);
 
         this.noteActive = false;
 
@@ -59,12 +60,12 @@ export default class GlottalInput implements IDisposable {
                 (error: any) => console.error(error)
             );
 
-        this.sub = signal$.subscribe(() => {
+        this.sub = this.shapeParam$.subscribe(() => {
             if (!this.noteActive) {
                 this.noteActive = true;
                 NoteHandler.startNote(
                     new GlottalSynthetizer(audioContext, this.panel.knobs[0].value),
-                    signal$, () => this.noteActive = false);
+                    this.shapeParam$, () => this.noteActive = false);
             }
         });
     }

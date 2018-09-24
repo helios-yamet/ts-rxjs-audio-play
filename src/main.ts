@@ -23,12 +23,20 @@ export default class Main implements IDisposable {
         $("#content").html(template);
 
         this.inputController = new InputController();
-        this.input1= new FormantsInput("main-controls-container", "formants", this.inputController);
+        this.input1 = new FormantsInput("main-controls-container", "formants", this.inputController);
         this.input2 = new GlottalInput("main-controls-container", "glottal", this.inputController);
 
+        // plot the LF-model waveform
         let lf: LfFunction = LfModelNode.waveformFunction(1);
-        this.plot = new FunctionPlotter("main-controls-container", "plotter", "LF-Model waveform for Rd = 1",
-            lf.f, ["Ts", "Tp", "Te", "Tc"], [0, lf.tp, lf.te, lf.tc]);
+        let labels: string[] = ["Ts", "Tp", "Te", "Tc"];
+        this.plot = new FunctionPlotter("main-controls-container", "plotter",
+            "LF-Model waveform", lf.f, labels, [0, lf.tp, lf.te, lf.tc]);
+
+        // update the plot
+        this.input2.shapeParam$.subscribe((v: number) => {
+            lf = LfModelNode.waveformFunction(0.024 * v + 0.3);
+            this.plot.updateChart(lf.f, labels, [0, lf.tp, lf.te, lf.tc]);
+        });
     }
 
     dispose(): void {

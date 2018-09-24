@@ -10,12 +10,14 @@ import InputController from "./core/input-controller";
 import FormantsInput from "./core/formants-input";
 import FunctionPlotter from "./ui/function-plotter";
 import LfModelNode, { LfFunction } from "./core/lf-model-node";
+import GlobalOutput from "./ui/global-output";
 
 export default class Main implements IDisposable {
 
     private inputController: InputController;
     private input1: FormantsInput;
     private input2: GlottalInput;
+    private output: GlobalOutput;
     private plot: FunctionPlotter;
 
     constructor() {
@@ -37,6 +39,8 @@ export default class Main implements IDisposable {
             lf = LfModelNode.waveformFunction(0.024 * v + 0.3);
             this.plot.updateChart(lf.f, labels, [0, lf.tp, lf.te, lf.tc]);
         });
+
+        this.output = new GlobalOutput("main-controls-container", "output", "Output", this.inputController);
     }
 
     dispose(): void {
@@ -44,6 +48,7 @@ export default class Main implements IDisposable {
         this.inputController.dispose();
         this.input1.dispose();
         this.input2.dispose();
+        this.output.dispose();
     }
 }
 

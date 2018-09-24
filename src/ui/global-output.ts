@@ -1,6 +1,6 @@
-import "./globalOutput.css";
+import "./global-output.css";
 
-import * as template from "!raw-loader!./globalOutput.html";
+import * as template from "!raw-loader!./global-output.html";
 import * as $ from "jquery";
 
 import Knob from "./knob";

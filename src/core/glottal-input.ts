@@ -37,7 +37,7 @@ export default class GlottalInput implements IDisposable {
             },
             {
                 id: "rd",
-                name: "Shape Param",
+                name: "Shape (Rd)",
                 minValue: 0,
                 maxValue: 100,
                 initValue: 50

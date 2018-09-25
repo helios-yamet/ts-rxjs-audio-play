@@ -1,9 +1,18 @@
 import * as Rx from "rxjs/Rx";
 import Knob from "../ui/knob";
+import SoundUnit from "./sound-unit";
+
+const MIDI_CONTROL_CHANGE: number = 176;
+const MIDI_NOTE_ON_EVENT: number = 144;
+const MIDI_NOTE_OFF_EVENT: number = 128;
+
+const MIDI_MAPPING_FIRST_KNOB_ID: number = 21;
+const MIDI_MAPPING_LAST_KNOB_ID: number = 28;
 
 /**
- * Utility class to control an incoming signal from various places (MIDI and
- * key board as of today). Some fiddling with RXjs, mostly.
+ * Utility class to control an incoming signal from various places (MIDI controller and
+ * key board as of today). Some fiddling with RXjs, mostly. Built for my own setup, might
+ * need some tweaking to adapt to other controllers (knob ids are set for a LaunchKey Mini).
  */
 export default class InputController implements IDisposable {
 
@@ -12,6 +21,7 @@ export default class InputController implements IDisposable {
     private activeKnobIndex: number | undefined;
 
     private subscriptions: Rx.Subscription[];
+    private soundUnit: SoundUnit | undefined;
 
     constructor() {
 
@@ -26,7 +36,12 @@ export default class InputController implements IDisposable {
     registerKnob = (knob: Knob) => {
         this.knobs.push(knob);
         this.selectKnob(knob);
+        knob.notifyMidiMapping(this.knobs.length + (MIDI_MAPPING_FIRST_KNOB_ID + 1));
         console.log(`registered knob ${knob.id}`);
+    }
+
+    setSoundUnit = (soundUnit: SoundUnit) => {
+        this.soundUnit = soundUnit;
     }
 
     selectKnob = (knob: Knob) => {
@@ -65,7 +80,7 @@ export default class InputController implements IDisposable {
      */
     private connectMidiController = function (this: InputController): Rx.Subscription {
 
-        let midiInputs$: Rx.Observable<number> = Rx.Observable.fromPromise(navigator.requestMIDIAccess())
+        let midiInputs$: Rx.Observable<WebMidi.MIDIMessageEvent> = Rx.Observable.fromPromise(navigator.requestMIDIAccess())
             .flatMap((access: WebMidi.MIDIAccess) => {
 
                 if (access.inputs.size === 0) {
@@ -76,22 +91,58 @@ export default class InputController implements IDisposable {
                 console.log(`Listening to input '${input.name}'...`);
 
                 return Rx.Observable.fromEvent(input, "midimessage").map((event) => {
-                    let midiEvent: WebMidi.MIDIMessageEvent = event as WebMidi.MIDIMessageEvent;
-                    return Math.round(midiEvent.data[2]);
+                    return event as WebMidi.MIDIMessageEvent;
                 });
             })
             .distinctUntilChanged();
 
-        return midiInputs$.subscribe(
-            value => {
-                if (this.activeKnob) {
-                    let ratio: number = value / 127;
-                    let normalizedValue: number = Math.round(
-                        this.activeKnob.minValue + ratio * (this.activeKnob.maxValue - this.activeKnob.minValue));
-                    this.activeKnob.next(normalizedValue);
-                    console.log(`Pushing a value to ${this.activeKnob.id}`);
-                }
-            },
+        return midiInputs$.subscribe(midiEvent => {
+
+            let eventId: number = midiEvent.data[0];
+
+            switch (eventId) {
+
+                case MIDI_CONTROL_CHANGE:
+
+                    let id: number = midiEvent.data[1];
+
+                    // first knob on the controller is mapped to the selected UI knob
+                    if (id === MIDI_MAPPING_FIRST_KNOB_ID) {
+                        if (this.activeKnob) {
+                            this.activeKnob.nextByRatio(midiEvent.data[2] / 127);
+                        }
+                        return;
+                    }
+
+                    // subsequent knobs are mapped to the UI knob by registration order
+                    if (id > MIDI_MAPPING_FIRST_KNOB_ID &&
+                        id <= MIDI_MAPPING_LAST_KNOB_ID) {
+
+                        let knobId: number = midiEvent.data[1] - (MIDI_MAPPING_FIRST_KNOB_ID + 1);
+                        if (knobId >= 0 && knobId < this.knobs.length) {
+                            let knob: Knob = this.knobs[knobId];
+                            knob.nextByRatio(midiEvent.data[2] / 127);
+                        }
+                    }
+                    return;
+
+                case MIDI_NOTE_ON_EVENT:
+
+                    // handle notes on (simple handling, no scale or velocity)
+                    if (this.soundUnit) {
+                        this.soundUnit.noteOn();
+                    }
+                    return;
+
+                case MIDI_NOTE_OFF_EVENT:
+
+                    // handle notes off
+                    if (this.soundUnit) {
+                        this.soundUnit.noteOff();
+                    }
+                    return;
+            }
+        },
             error => console.error(error)
         );
     };
@@ -147,24 +198,21 @@ export default class InputController implements IDisposable {
         const KEY_LEFT: number = 37;
         const KEY_RIGHT: number = 39;
 
+        // modulo function which works for negative (js has a funny modulo function)
         const arrayIndex: (i: number, length: number) => number = (x, n) => (x % n + n) % n;
 
         return Rx.Observable.fromEvent<KeyboardEvent>(document, "keydown")
             .map((event) => {
-                let code: number = event.keyCode;
-                if (code === KEY_LEFT) {
-                    return -1;
-                } else if (code === KEY_RIGHT) {
-                    return 1;
+                switch (event.keyCode) {
+                    case KEY_LEFT: return -1;
+                    case KEY_RIGHT: return 1;
+                    default: return 0;
                 }
-                return 0;
             })
             .filter(x => x !== 0)
             .subscribe(
                 x => {
-                    let test: number = this.activeKnobIndex !== undefined
-                        ? this.activeKnobIndex + x
-                        : 0;
+                    let test: number = this.activeKnobIndex ? this.activeKnobIndex + x : 0;
                     this.selectKnobByIndex(arrayIndex(test, this.knobs.length));
                 },
                 error => console.error(error));

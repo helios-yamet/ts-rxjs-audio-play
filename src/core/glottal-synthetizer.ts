@@ -62,7 +62,7 @@ export default class GlottalSynthesizer extends SoundUnit {
         }
 
         formants.forEach((f: number[]) => {
-            let formant: AudioNode = this.createFormant(this.lfModel, f[0], f[1], f[2]);
+            let formant: AudioNode = this.createFormant(this.tmpSwitch, f[0], f[1], f[2]);
             formant.connect(vibrato);
         });
 
@@ -101,6 +101,14 @@ export default class GlottalSynthesizer extends SoundUnit {
 
     public noteOff(this: GlottalSynthesizer): void {
         this.lfModel.disconnect();
+    }
+
+    public setVibrato(this: GlottalSynthesizer, amount: number): void {
+        // ... todo
+    }
+
+    public setFrequency(this: GlottalSynthesizer, frequency: number): void {
+        this.lfModel.getFrequency().setValueAtTime(frequency, this.audioContext.currentTime);
     }
 
     dispose(): void {

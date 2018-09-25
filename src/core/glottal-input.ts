@@ -14,13 +14,15 @@ export default class GlottalInput implements IDisposable {
 
     private panel: Panel;
     private inputController: InputController;
-    private sub: Rx.Subscription;
+    private subs: Rx.Subscription[];
 
     private noteActive: boolean;
+    private soundUnit: GlottalSynthetizer | undefined;
 
     constructor(
         containerId: string,
         id: string,
+        audioContext: AudioContext,
         inputController: InputController) {
 
         this.id = id;
@@ -46,33 +48,44 @@ export default class GlottalInput implements IDisposable {
             this.inputController);
 
         // pass the knob through a subject
+        let frequency$: Rx.Subject<number> = new Rx.Subject();
+        this.panel.knobs[0].subscribe(frequency$);
         this.shapeParam$ = new Rx.Subject();
         this.panel.knobs[1].subscribe(this.shapeParam$);
 
         this.noteActive = false;
 
         // load worklet in audio context
-        let audioContext: AudioContext = new AudioContext();
-        console.log(`Sample rate: ${audioContext.sampleRate}`);
         Rx.Observable.fromPromise(audioContext.audioWorklet.addModule(lfModule))
             .take(1)
             .subscribe(
-                () => console.log(`Worklet processor '${lfModule}' loaded`),
+                () => {
+                    console.log(`Worklet processor '${lfModule}' loaded`);
+                    this.soundUnit = new GlottalSynthetizer(audioContext, 120, Vowel.Aaaa);
+                    this.inputController.setSoundUnit(this.soundUnit);
+                },
                 (error: any) => console.error(error)
             );
 
-        this.sub = this.shapeParam$.subscribe(() => {
+        this.subs = [];
+        this.subs.push(this.shapeParam$.subscribe(() => {
             if (!this.noteActive) {
                 this.noteActive = true;
                 NoteHandler.startNote(
                     new GlottalSynthetizer(audioContext, this.panel.knobs[0].value, Math.random() < .5 ? Vowel.Aaaa : Vowel.Oooo),
                     this.shapeParam$, () => this.noteActive = false);
             }
-        });
+        }));
+
+        this.subs.push(frequency$.subscribe((value: number) => {
+            if (this.soundUnit) {
+                this.soundUnit.setFrequency(value);
+            }
+        }));
     }
 
     dispose(): void {
-        this.sub.unsubscribe();
+        this.subs.forEach((s) => s.unsubscribe());
         this.panel.dispose();
     }
 }

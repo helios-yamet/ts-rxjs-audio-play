@@ -11,6 +11,7 @@ import FormantsInput from "./core/formants-input";
 import FunctionPlotter from "./ui/function-plotter";
 import LfModelNode, { LfFunction } from "./core/lf-model-node";
 import GlobalOutput from "./ui/global-output";
+import GlottalSynthesizer, { Vowel } from "./core/glottal-synthetizer";
 
 export default class Main implements IDisposable {
 
@@ -24,9 +25,10 @@ export default class Main implements IDisposable {
 
         $("#content").html(template);
 
+        let audioContext: AudioContext = new AudioContext();
         this.inputController = new InputController();
         this.input1 = new FormantsInput("main-controls-container", "formants", this.inputController);
-        this.input2 = new GlottalInput("main-controls-container", "glottal", this.inputController);
+        this.input2 = new GlottalInput("main-controls-container", "glottal", audioContext, this.inputController);
 
         // plot the LF-model waveform
         let lf: LfFunction = LfModelNode.waveformFunction(1);

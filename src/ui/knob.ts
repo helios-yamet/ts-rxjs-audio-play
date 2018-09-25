@@ -21,6 +21,8 @@ export default class Knob extends Rx.BehaviorSubject<number> implements IDisposa
     private $knobSprites: JQuery<HTMLElement>;
     private $knobValue: JQuery<HTMLElement>;
 
+    private midiId: number | undefined;
+
     constructor(
         containerId: string,
         id: string,
@@ -123,6 +125,21 @@ export default class Knob extends Rx.BehaviorSubject<number> implements IDisposa
         return Rx.Observable.fromEvent(this.$knobLabel.get(0), "click").subscribe(() => {
             selectionCallback(this);
         });
+    };
+
+    /**
+     * Emit the next value for this knob, normalized according to min/max values.
+     */
+    public nextByRatio = function (this: Knob, ratio: number): void {
+        this.next(Math.round(this.minValue + ratio * (this.maxValue - this.minValue)));
+    };
+
+    /**
+     * Report MIDI mapping (called by input controller)
+     * @param selected Selected or not
+     */
+    public notifyMidiMapping = function (this: Knob, midiId: number): void {
+        this.midiId = midiId;
     };
 
     /**

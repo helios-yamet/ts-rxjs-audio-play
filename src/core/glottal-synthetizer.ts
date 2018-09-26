@@ -3,21 +3,21 @@ import * as Tone from "tone";
 import LfModelNode from "./lf-model-node";
 import { ModulationEvent } from "./note-handler";
 import SoundUnit from "./sound-unit";
-
-export enum Vowel {
-    Aaaa,
-    Oooo
-}
+import FormantDefinitions, { Vowel } from "./formants";
 
 export default class GlottalSynthesizer extends SoundUnit {
 
     private audioContext: AudioContext;
     private lfModel: LfModelNode;
+    private vibrato: any;
+
     private tmpSwitch: any;
 
     constructor(audioContext: AudioContext, frequency: number, vowel: Vowel) {
 
         super();
+
+        console.log("Creating a glottal synth");
 
         // build an audio graph starting from native Web Audio
         this.audioContext = audioContext;
@@ -29,7 +29,7 @@ export default class GlottalSynthesizer extends SoundUnit {
         // continue the end of the graph on Tone.js
         Tone.setContext(this.audioContext);
         this.tmpSwitch = new Tone.Volume(0);
-        let vibrato: any = new Tone.Vibrato({
+        this.vibrato = new Tone.Vibrato({
             maxDelay: 0.005,
             frequency: 5,
             depth: .1,
@@ -37,40 +37,16 @@ export default class GlottalSynthesizer extends SoundUnit {
             wet: 1
         });
 
-        let formants: number[][];
-        switch (vowel) {
-            case Vowel.Aaaa:
-                formants = [
-                    [600, 0, 60],
-                    [1040, -7, 70],
-                    [2250, -9, 110],
-                    [2450, -9, 120],
-                    [2750, -20, 130]];
-                break;
-
-            case Vowel.Oooo:
-                formants = [
-                    [400, 0, 40],
-                    [750, -11, 80],
-                    [2400, -21, 100],
-                    [2600, -20, 120],
-                    [2900, -40, 120]];
-                break;
-
-            default:
-                throw "Cannot lah.";
-        }
-
-        formants.forEach((f: number[]) => {
+        FormantDefinitions.formantsFor(vowel).forEach((f: number[]) => {
             let formant: AudioNode = this.createFormant(this.tmpSwitch, f[0], f[1], f[2]);
-            formant.connect(vibrato);
+            formant.connect(this.vibrato);
         });
 
         let comp: any = new Tone.Compressor(-30, 20);
         let masterVolume: any = new Tone.Volume(10);
 
         // link it all together
-        vibrato.chain(comp, masterVolume);
+        this.vibrato.chain(comp, masterVolume);
         masterVolume.toMaster();
     }
 
@@ -80,7 +56,7 @@ export default class GlottalSynthesizer extends SoundUnit {
             type: "bandpass",
             frequency: freq,
             rolloff: -12,
-            Q: freq / width // to be verified -> http://www.sengpielaudio.com/calculator-cutoffFrequencies.htm
+            Q: freq / width
         });
 
         let volume: any = new Tone.Volume(amp);
@@ -103,12 +79,24 @@ export default class GlottalSynthesizer extends SoundUnit {
         this.lfModel.disconnect();
     }
 
-    public setVibrato(this: GlottalSynthesizer, amount: number): void {
-        // ... todo
+    public setVibratoAmount(this: GlottalSynthesizer, amount: number): void {
+        this.vibrato.wet.setValueAtTime(this.mapRange(amount, 0, 1), 0);
+    }
+
+    public setVibratoFrequency(this: GlottalSynthesizer, amount: number): void {
+        this.vibrato.frequency.setValueAtTime(this.mapRange(amount, 1, 10), 0);
+    }
+
+    public setVibratoDepth(this: GlottalSynthesizer, amount: number): void {
+        this.vibrato.depth.setValueAtTime(this.mapRange(amount, 0, 1), 0);
     }
 
     public setFrequency(this: GlottalSynthesizer, frequency: number): void {
         this.lfModel.getFrequency().setValueAtTime(frequency, this.audioContext.currentTime);
+    }
+
+    public setShapeParam(this: GlottalSynthesizer, rd: number): any {
+        this.lfModel.getShapeParam().setValueAtTime(this.mapRange(rd, 0.3, 2.7), 0);
     }
 
     dispose(): void {

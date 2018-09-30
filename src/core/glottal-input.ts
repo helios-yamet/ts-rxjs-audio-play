@@ -72,7 +72,7 @@ export default class GlottalInput implements IDisposable {
                 id: "vowel",
                 name: "Vowel",
                 minValue: 0,
-                maxValue: 24,
+                maxValue: FormantDefinitions.all.length - 1,
                 initValue: 20,
                 displayValue: (v) => FormantDefinitions.all[Math.floor(v)].name
             }, {
@@ -143,7 +143,7 @@ export default class GlottalInput implements IDisposable {
 
         // vibrato amount
         let vibratoAmount$: Rx.Subject<number> = new Rx.Subject();
-        this.soundPanel.knobs[2].subscribe(vibratoAmount$);
+        this.soundPanel.knobs[3].subscribe(vibratoAmount$);
         this.subs.push(vibratoAmount$.subscribe((value: number) => {
             if (this.soundUnit) {
                 this.soundUnit.setVibratoAmount(value);
@@ -152,7 +152,7 @@ export default class GlottalInput implements IDisposable {
 
         // vibrato frequency
         let vibratoFreq$: Rx.Subject<number> = new Rx.Subject();
-        this.soundPanel.knobs[3].subscribe(vibratoFreq$);
+        this.soundPanel.knobs[4].subscribe(vibratoFreq$);
         this.subs.push(vibratoFreq$.subscribe((value: number) => {
             if (this.soundUnit) {
                 this.soundUnit.setVibratoFrequency(value);
@@ -161,7 +161,7 @@ export default class GlottalInput implements IDisposable {
 
         // vibrato depth
         let vibratoDepth$: Rx.Subject<number> = new Rx.Subject();
-        this.soundPanel.knobs[4].subscribe(vibratoDepth$);
+        this.soundPanel.knobs[5].subscribe(vibratoDepth$);
         this.subs.push(vibratoDepth$.subscribe((value: number) => {
             if (this.soundUnit) {
                 this.soundUnit.setVibratoDepth(value);

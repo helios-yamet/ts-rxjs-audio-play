@@ -27,11 +27,44 @@ export enum Vowel {
     Bass_U,
 }
 
+export interface IFormantDefinition {
+    name: string;
+    vowel: Vowel;
+    formants: [number, number, number][];
+}
+
 /**
  * Formant table converted from
  * https://www.classes.cs.uchicago.edu/archive/1999/spring/CS295/Computing_Resources/Csound/CsManual3.48b1.HTML/Appendices/table3.html
  */
 export default class FormantDefinitions {
+
+    public static all: IFormantDefinition[] = [
+        { name: "Soprano A", vowel: Vowel.Soprano_A, formants: FormantDefinitions.formantsFor(Vowel.Soprano_A) },
+        { name: "Soprano E", vowel: Vowel.Soprano_E, formants: FormantDefinitions.formantsFor(Vowel.Soprano_E) },
+        { name: "Soprano I", vowel: Vowel.Soprano_I, formants: FormantDefinitions.formantsFor(Vowel.Soprano_I) },
+        { name: "Soprano O", vowel: Vowel.Soprano_O, formants: FormantDefinitions.formantsFor(Vowel.Soprano_O) },
+        { name: "Soprano U", vowel: Vowel.Soprano_U, formants: FormantDefinitions.formantsFor(Vowel.Soprano_U) },
+        { name: "Alto A", vowel: Vowel.Alto_A, formants: FormantDefinitions.formantsFor(Vowel.Alto_A) },
+        { name: "Alto E", vowel: Vowel.Alto_E, formants: FormantDefinitions.formantsFor(Vowel.Alto_E) },
+        { name: "Alto I", vowel: Vowel.Alto_I, formants: FormantDefinitions.formantsFor(Vowel.Alto_I) },
+        { name: "Alto O", vowel: Vowel.Alto_O, formants: FormantDefinitions.formantsFor(Vowel.Alto_O) },
+        { name: "Alto U", vowel: Vowel.Alto_U, formants: FormantDefinitions.formantsFor(Vowel.Alto_U) },
+        { name: "C tenor A", vowel: Vowel.Countertenor_A, formants: FormantDefinitions.formantsFor(Vowel.Countertenor_A) },
+        { name: "C tenor E", vowel: Vowel.Countertenor_E, formants: FormantDefinitions.formantsFor(Vowel.Countertenor_E) },
+        { name: "C tenor I", vowel: Vowel.Countertenor_I, formants: FormantDefinitions.formantsFor(Vowel.Countertenor_I) },
+        { name: "C tenor O", vowel: Vowel.Countertenor_O, formants: FormantDefinitions.formantsFor(Vowel.Countertenor_O) },
+        { name: "C tenor U", vowel: Vowel.Countertenor_U, formants: FormantDefinitions.formantsFor(Vowel.Countertenor_U) },
+        { name: "Tenor A", vowel: Vowel.Tenor_A, formants: FormantDefinitions.formantsFor(Vowel.Tenor_A) },
+        { name: "Tenor E", vowel: Vowel.Tenor_E, formants: FormantDefinitions.formantsFor(Vowel.Tenor_E) },
+        { name: "Tenor I", vowel: Vowel.Tenor_I, formants: FormantDefinitions.formantsFor(Vowel.Tenor_I) },
+        { name: "Tenor O", vowel: Vowel.Tenor_O, formants: FormantDefinitions.formantsFor(Vowel.Tenor_O) },
+        { name: "Tenor U", vowel: Vowel.Tenor_U, formants: FormantDefinitions.formantsFor(Vowel.Tenor_U) },
+        { name: "Bass A", vowel: Vowel.Bass_A, formants: FormantDefinitions.formantsFor(Vowel.Bass_A) },
+        { name: "Bass E", vowel: Vowel.Bass_E, formants: FormantDefinitions.formantsFor(Vowel.Bass_E) },
+        { name: "Bass I", vowel: Vowel.Bass_I, formants: FormantDefinitions.formantsFor(Vowel.Bass_I) },
+        { name: "Bass O", vowel: Vowel.Bass_O, formants: FormantDefinitions.formantsFor(Vowel.Bass_O) },
+        { name: "Bass U", vowel: Vowel.Bass_U, formants: FormantDefinitions.formantsFor(Vowel.Bass_U) }];
 
     /**
      * Return formants as tuples of frequency/amplitude/bandwidth

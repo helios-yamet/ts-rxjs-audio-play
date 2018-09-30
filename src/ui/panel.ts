@@ -13,6 +13,7 @@ interface IKnobDefinition {
     minValue: number;
     maxValue: number;
     initValue: number;
+    displayValue?: (value: number) => string;
 }
 
 export default class Panel implements IDisposable {
@@ -44,7 +45,7 @@ export default class Panel implements IDisposable {
             let knob: Knob = new Knob(
                 `${this.id}-knobs`, `${this.id}-${d.id}`, d.name,
                 d.minValue, d.maxValue, d.initValue,
-                (value: number) => `${value}`,
+                d.displayValue ? d.displayValue : (value: number) => `${value}`,
                 this.inputController.selectKnob);
 
             this.knobs.push(knob);

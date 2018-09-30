@@ -5,10 +5,16 @@ import { ModulationEvent } from "./note-handler";
 import SoundUnit from "./sound-unit";
 import FormantDefinitions, { Vowel } from "./formants";
 
+class FormantFilter {
+    filter: any;
+    volume: any;
+}
+
 export default class GlottalSynthesizer extends SoundUnit {
 
     private audioContext: AudioContext;
     private lfModel: LfModelNode;
+    private formantFilters: FormantFilter[];
     private vibrato: any;
 
     private tmpSwitch: any;
@@ -37,9 +43,33 @@ export default class GlottalSynthesizer extends SoundUnit {
             wet: 1
         });
 
+        this.formantFilters = [];
         FormantDefinitions.formantsFor(vowel).forEach((f: number[]) => {
-            let formant: AudioNode = this.createFormant(this.tmpSwitch, f[0], f[1], f[2]);
-            formant.connect(this.vibrato);
+
+            // create formant filter
+            let freq: number = f[0];
+            let amp: number = f[1];
+            let width: number = f[2];
+
+            let filter: any = new Tone.Filter({
+                type: "bandpass",
+                frequency: freq,
+                rolloff: -12,
+                Q: freq / width
+            });
+
+            let volume: any = new Tone.Volume(amp);
+
+            // wire it all together
+            this.tmpSwitch.connect(filter);
+            filter.connect(volume);
+            volume.connect(this.vibrato);
+
+            // register filter compoent (so it can be updated)
+            this.formantFilters.push({
+                filter: filter,
+                volume: volume
+            });
         });
 
         let comp: any = new Tone.Compressor(-30, 20);
@@ -48,23 +78,6 @@ export default class GlottalSynthesizer extends SoundUnit {
         // link it all together
         this.vibrato.chain(comp, masterVolume);
         masterVolume.toMaster();
-    }
-
-    private createFormant(source: AudioNode, freq: number, amp: number, width: number): AudioNode {
-
-        let filter: any = new Tone.Filter({
-            type: "bandpass",
-            frequency: freq,
-            rolloff: -12,
-            Q: freq / width
-        });
-
-        let volume: any = new Tone.Volume(amp);
-
-        source.connect(filter);
-        filter.connect(volume);
-
-        return volume;
     }
 
     public noteOn(this: GlottalSynthesizer): void {
@@ -97,6 +110,20 @@ export default class GlottalSynthesizer extends SoundUnit {
 
     public setShapeParam(this: GlottalSynthesizer, rd: number): any {
         this.lfModel.getShapeParam().setValueAtTime(this.mapRange(rd, 0.3, 2.7), 0);
+    }
+
+    public setVowel(this: GlottalSynthesizer, vowel: Vowel): any {
+
+        let i: number = 0;
+        FormantDefinitions.formantsFor(vowel).forEach((f) => {
+            let freq: number = f[0];
+            let amp: number = f[1];
+            let width: number = f[2];
+            let filter: FormantFilter = this.formantFilters[i++];
+            filter.filter.frequency.value = freq;
+            filter.filter.Q.value = freq / width;
+            filter.volume.value = amp;
+        });
     }
 
     dispose(): void {

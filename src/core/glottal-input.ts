@@ -66,7 +66,7 @@ export default class GlottalInput implements IDisposable {
                 id: "freq",
                 name: "Frequency",
                 minValue: 30,
-                maxValue: 250,
+                maxValue: 450,
                 initValue: 120
             }, {
                 id: "vowel",

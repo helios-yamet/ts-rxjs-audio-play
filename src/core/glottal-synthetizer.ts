@@ -8,8 +8,9 @@ import FormantDefinitions, { Vowel } from "./formants";
 interface IFormantFilter {
     filter: any;
     volume: any;
-    output: any;
 }
+
+const TMP : number = 5;
 
 export default class GlottalSynthesizer extends SoundUnit {
 
@@ -18,7 +19,7 @@ export default class GlottalSynthesizer extends SoundUnit {
     private formantFilters: IFormantFilter[];
     private vibrato: any;
 
-    private tmpSwitch: any;
+    private sourceSwitch: any;
 
     constructor(audioContext: AudioContext, frequency: number, vowel: Vowel) {
 
@@ -35,18 +36,16 @@ export default class GlottalSynthesizer extends SoundUnit {
 
         // continue the end of the graph on Tone.js
         Tone.setContext(this.audioContext);
-        this.tmpSwitch = new Tone.Volume(0);
-        this.vibrato = new Tone.Vibrato({
-            maxDelay: 0.005,
-            frequency: 5,
-            depth: .1,
-            type: "sine",
-            wet: 1
-        });
+        this.sourceSwitch = new Tone.Gain();
+        let joinGain: any = new Tone.Gain(); // todo check this, might not be needed ...
 
         let i: number = 0;
         this.formantFilters = [];
         FormantDefinitions.formantsFor(vowel).forEach((f: number[]) => {
+
+            if(i++ === TMP) {
+                return;
+            }
 
             // create formant filter
             let freq: number = f[0];
@@ -60,42 +59,35 @@ export default class GlottalSynthesizer extends SoundUnit {
                 Q: freq / width
             });
 
-            let volume: any = new Tone.Volume(amp);
-
-            // wire it all together
-            let output: any;
-            if (i === 0) {
-                this.tmpSwitch.connect(filter);
-                filter.connect(volume);
-                output = volume;
-            } else {
-                let add: any = new Tone.Add();
-                this.formantFilters[i - 1].output.connect(add, 0, 0);
-                volume.connect(add, 0, 1);
-                output = add;
-            }
-            i++;
+            let volume: any = new Tone.Volume(i*2); // TEST --> seems to produce better results than using the amp
+            this.sourceSwitch.chain(filter, volume);
+            volume.toMaster();
 
             // register filter component (so it can be updated)
             this.formantFilters.push({
                 filter: filter,
-                volume: volume,
-                output: output
+                volume: volume
             });
         });
 
         let comp: any = new Tone.Compressor(-30, 20);
         let masterVolume: any = new Tone.Volume(10);
 
-        console.log(`Vibrato has ${this.vibrato.numberOfInputs} inputs and ${this.vibrato.numberOfOutputs} outputs`);
+        this.vibrato = new Tone.Vibrato({
+            maxDelay: 0.005,
+            frequency: 5,
+            depth: .1,
+            type: "sine",
+            wet: 1
+        });
 
         // link it all together
-        this.formantFilters[this.formantFilters.length - 1].output.chain(this.vibrato, comp, masterVolume);
+        joinGain.chain(this.vibrato, comp, masterVolume);
         masterVolume.toMaster();
     }
 
     public noteOn(this: GlottalSynthesizer): void {
-        this.lfModel.connect(this.tmpSwitch);
+        this.lfModel.connect(this.sourceSwitch);
     }
 
     public modulate(this: GlottalSynthesizer, modulation: ModulationEvent): void {
@@ -128,16 +120,21 @@ export default class GlottalSynthesizer extends SoundUnit {
 
     public setVowel(this: GlottalSynthesizer, vowel: Vowel): any {
 
-        const rampTime: number = 0.5;
+        const rampTime: number = 0.1;
         let i: number = 0;
         FormantDefinitions.formantsFor(vowel).forEach((f) => {
+
+            if(i === TMP) {
+                return;
+            }
+
             let freq: number = f[0];
             let amp: number = f[1];
             let width: number = f[2];
-            let filter: IFormantFilter = this.formantFilters[i++];
+            let filter: IFormantFilter = this.formantFilters[i];
             filter.filter.frequency.exponentialRampTo(freq, rampTime);
             filter.filter.Q.exponentialRampTo(freq / width, rampTime);
-            filter.volume.volume.exponentialRampTo(amp, rampTime);
+            filter.volume.volume.exponentialRampTo(i++ * 2, rampTime); // todo not forget to align it here as well ...
         });
     }
 

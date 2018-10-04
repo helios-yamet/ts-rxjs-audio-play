@@ -10,7 +10,7 @@ interface IFormantFilter {
     volume: any;
 }
 
-const TMP : number = 5;
+const TMP : number = 2; // TODO change this (just tweaking / testing)
 
 export default class GlottalSynthesizer extends SoundUnit {
 
@@ -59,9 +59,8 @@ export default class GlottalSynthesizer extends SoundUnit {
                 Q: freq / width
             });
 
-            let volume: any = new Tone.Volume(i*2); // TEST --> seems to produce better results than using the amp
-            this.sourceSwitch.chain(filter, volume);
-            volume.toMaster();
+            let volume: any = new Tone.Volume(i*1.2); // TEST --> seems to produce better results than using the amp
+            this.sourceSwitch.chain(filter, volume, joinGain);
 
             // register filter component (so it can be updated)
             this.formantFilters.push({
@@ -69,9 +68,6 @@ export default class GlottalSynthesizer extends SoundUnit {
                 volume: volume
             });
         });
-
-        let comp: any = new Tone.Compressor(-30, 20);
-        let masterVolume: any = new Tone.Volume(10);
 
         this.vibrato = new Tone.Vibrato({
             maxDelay: 0.005,
@@ -82,6 +78,8 @@ export default class GlottalSynthesizer extends SoundUnit {
         });
 
         // link it all together
+        let comp: any = new Tone.Compressor(-30, 20);
+        let masterVolume: any = new Tone.Volume(0);
         joinGain.chain(this.vibrato, comp, masterVolume);
         masterVolume.toMaster();
     }
@@ -134,7 +132,7 @@ export default class GlottalSynthesizer extends SoundUnit {
             let filter: IFormantFilter = this.formantFilters[i];
             filter.filter.frequency.exponentialRampTo(freq, rampTime);
             filter.filter.Q.exponentialRampTo(freq / width, rampTime);
-            filter.volume.volume.exponentialRampTo(i++ * 2, rampTime); // todo not forget to align it here as well ...
+            filter.volume.volume.exponentialRampTo(i++ * 1.2, rampTime); // todo not forget to align it here as well ...
         });
     }
 

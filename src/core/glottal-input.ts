@@ -35,7 +35,7 @@ export default class GlottalInput implements IDisposable {
             .subscribe(
                 () => {
                     console.log(`Worklet processor '${lfModule}' loaded`);
-                    this.soundUnit = new GlottalSynthetizer(audioContext, 120, Vowel.Bass_A);
+                    this.soundUnit = new GlottalSynthetizer(audioContext, 120, Vowel.A_Bass);
                     this.inputController.setSoundUnit(this.soundUnit);
                 },
                 (error: any) => console.error(error)
@@ -109,7 +109,7 @@ export default class GlottalInput implements IDisposable {
                     new GlottalSynthetizer(
                         audioContext,
                         this.soundPanel.knobs[1].value,
-                        Math.random() < .5 ? Vowel.Tenor_A : Vowel.Tenor_I),
+                        Math.random() < .5 ? Vowel.A_Tenor : Vowel.I_Tenor),
                     inputSignal$, () => this.noteActive = false);
             }
         }));

@@ -70,7 +70,16 @@ export default class FormantDefinitions {
      * Return formants as tuples of frequency/amplitude/bandwidth
      * @param type the type of formant to return
      */
-    public static formantsFor(type: Vowel): [number, number, number][] {
+    public static formantsFor(type: Vowel, nb?: number): [number, number, number][] {
+
+        let formants: [number, number, number][] = this.buildFormantsFor(type);
+        if(nb) {
+            formants.splice(nb);
+        }
+        return formants;
+    }
+
+    private static buildFormantsFor(type: Vowel): [number, number, number][] {
 
         switch (type) {
 

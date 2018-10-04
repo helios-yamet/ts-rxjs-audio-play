@@ -10,7 +10,7 @@ interface IFormantFilter {
     volume: any;
 }
 
-const TMP : number = 2; // TODO change this (just tweaking / testing)
+const NB_FORMANTS: number = 5;
 
 export default class GlottalSynthesizer extends SoundUnit {
 
@@ -34,40 +34,9 @@ export default class GlottalSynthesizer extends SoundUnit {
         this.lfModel.port.onmessage = (msg) => console.log(`Message from sound processor: ${msg.data}`);
         this.lfModel.getFrequency().setValueAtTime(frequency, audioContext.currentTime);
 
-        // continue the end of the graph on Tone.js
+        // continue the audio graph on Tone.js (works, somehow)
         Tone.setContext(this.audioContext);
         this.sourceSwitch = new Tone.Gain();
-        let joinGain: any = new Tone.Gain(); // todo check this, might not be needed ...
-
-        let i: number = 0;
-        this.formantFilters = [];
-        FormantDefinitions.formantsFor(vowel).forEach((f: number[]) => {
-
-            if(i++ === TMP) {
-                return;
-            }
-
-            // create formant filter
-            let freq: number = f[0];
-            let amp: number = f[1];
-            let width: number = f[2];
-
-            let filter: any = new Tone.Filter({
-                type: "bandpass",
-                frequency: freq,
-                rolloff: -12,
-                Q: freq / width
-            });
-
-            let volume: any = new Tone.Volume(i*1.2); // TEST --> seems to produce better results than using the amp
-            this.sourceSwitch.chain(filter, volume, joinGain);
-
-            // register filter component (so it can be updated)
-            this.formantFilters.push({
-                filter: filter,
-                volume: volume
-            });
-        });
 
         this.vibrato = new Tone.Vibrato({
             maxDelay: 0.005,
@@ -77,10 +46,31 @@ export default class GlottalSynthesizer extends SoundUnit {
             wet: 1
         });
 
+        // setup formant filters
+        this.formantFilters = [];
+        for (let i: number = 0; i < NB_FORMANTS; i++) {
+
+            let filter: any = new Tone.Filter({
+                type: "bandpass",
+                frequency: 0,
+                rolloff: -12,
+                Q: 0
+            });
+
+            let volume: any = new Tone.Volume(0);
+            this.sourceSwitch.chain(filter, volume, this.vibrato);
+
+            this.formantFilters.push({
+                filter: filter,
+                volume: volume
+            });
+        }
+        this.setVowel(vowel, 0);
+
         // link it all together
         let comp: any = new Tone.Compressor(-30, 20);
         let masterVolume: any = new Tone.Volume(0);
-        joinGain.chain(this.vibrato, comp, masterVolume);
+        this.vibrato.chain(comp, masterVolume);
         masterVolume.toMaster();
     }
 
@@ -116,23 +106,21 @@ export default class GlottalSynthesizer extends SoundUnit {
         this.vibrato.depth.setValueAtTime(this.mapRange(amount, 0, 1), 0);
     }
 
-    public setVowel(this: GlottalSynthesizer, vowel: Vowel): any {
+    public setVowel(this: GlottalSynthesizer, vowel: Vowel, rampTime?: number): any {
 
-        const rampTime: number = 0.1;
         let i: number = 0;
-        FormantDefinitions.formantsFor(vowel).forEach((f) => {
-
-            if(i === TMP) {
-                return;
-            }
+        const magicFactor: number = 1.2;
+        rampTime = rampTime ? rampTime : 0.1;
+        FormantDefinitions.formantsFor(vowel, NB_FORMANTS).forEach((f) => {
 
             let freq: number = f[0];
-            let amp: number = f[1];
+            let amp: number = f[1]; // ignoring this, in favor of magic factor hack
             let width: number = f[2];
             let filter: IFormantFilter = this.formantFilters[i];
             filter.filter.frequency.exponentialRampTo(freq, rampTime);
             filter.filter.Q.exponentialRampTo(freq / width, rampTime);
-            filter.volume.volume.exponentialRampTo(i++ * 1.2, rampTime); // todo not forget to align it here as well ...
+            filter.volume.volume.exponentialRampTo(i*magicFactor, rampTime);
+            i++;
         });
     }
 

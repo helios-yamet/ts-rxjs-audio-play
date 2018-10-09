@@ -34,6 +34,9 @@ export default class GlottalSynthesizer extends SoundUnit {
         this.lfModel.port.onmessage = (msg) => console.log(`Message from sound processor: ${msg.data}`);
         this.lfModel.getFrequency().setValueAtTime(frequency, audioContext.currentTime);
 
+        let aspirationNoise: AudioNode = this.createAspirationNoiseNode();
+        aspirationNoise.connect(this.lfModel); // then connects to sourceSwitch
+
         // continue the audio graph on Tone.js (works, somehow)
         Tone.setContext(this.audioContext);
         this.sourceSwitch = new Tone.Gain();
@@ -74,6 +77,30 @@ export default class GlottalSynthesizer extends SoundUnit {
         masterVolume.toMaster();
     }
 
+    private createAspirationNoiseNode(this: GlottalSynthesizer): AudioNode {
+
+        const BUFFER_SIZE: number = this.audioContext.sampleRate * 4;
+        let buffer: AudioBuffer = this.audioContext.createBuffer(1, BUFFER_SIZE, this.audioContext.sampleRate);
+        let bufferData: Float32Array = buffer.getChannelData(0);
+        for (let i: number = 0; i < BUFFER_SIZE; i++) {
+            bufferData[i] = Math.random();
+        }
+
+        let whiteNoise: AudioBufferSourceNode = this.audioContext.createBufferSource();
+        whiteNoise.buffer = buffer;
+        whiteNoise.loop = true;
+
+        let aspirationFilter: BiquadFilterNode = this.audioContext.createBiquadFilter();
+        aspirationFilter.type = "lowpass";
+        aspirationFilter.frequency.value = 1800;
+        aspirationFilter.Q.value = 0;
+
+        whiteNoise.connect(aspirationFilter);
+        whiteNoise.start();
+
+        return aspirationFilter;
+    }
+
     public noteOn(this: GlottalSynthesizer): void {
         this.lfModel.connect(this.sourceSwitch);
     }
@@ -84,6 +111,10 @@ export default class GlottalSynthesizer extends SoundUnit {
 
     public noteOff(this: GlottalSynthesizer): void {
         this.lfModel.disconnect();
+    }
+
+    public setAspiration(this: GlottalSynthesizer, amount: number): void {
+        this.lfModel.getAspiration().setValueAtTime(amount / 100, this.audioContext.currentTime);
     }
 
     public setFrequency(this: GlottalSynthesizer, frequency: number): void {

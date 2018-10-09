@@ -62,6 +62,12 @@ export default class GlottalInput implements IDisposable {
                 minValue: 0,
                 maxValue: 100,
                 initValue: 50
+            },{
+                id: "aspi",
+                name: "Apiration",
+                minValue: 0,
+                maxValue: 100,
+                initValue: 0
             }, {
                 id: "freq",
                 name: "Frequency",
@@ -108,7 +114,7 @@ export default class GlottalInput implements IDisposable {
                 NoteHandler.startNote(
                     new GlottalSynthetizer(
                         audioContext,
-                        this.soundPanel.knobs[1].value,
+                        this.soundPanel.knobs[2].value,
                         Math.random() < .5 ? Vowel.A_Tenor : Vowel.I_Tenor),
                     inputSignal$, () => this.noteActive = false);
             }
@@ -123,18 +129,27 @@ export default class GlottalInput implements IDisposable {
             }
         }));
 
+        // aspiration amount
+        let aspiration$: Rx.Subject<number> = new Rx.Subject();
+        this.soundPanel.knobs[1].subscribe(aspiration$);
+        this.subs.push(aspiration$.subscribe((value: number) => {
+            if (this.soundUnit) {
+                this.soundUnit.setAspiration(value);
+            }
+        }));
+
         // frequency
         let frequency$: Rx.Subject<number> = new Rx.Subject();
-        this.soundPanel.knobs[1].subscribe(frequency$);
+        this.soundPanel.knobs[2].subscribe(frequency$);
         this.subs.push(frequency$.subscribe((value: number) => {
             if (this.soundUnit) {
                 this.soundUnit.setFrequency(value);
             }
         }));
 
-        // frequency
+        // vowel
         let vowel$: Rx.Subject<number> = new Rx.Subject();
-        this.soundPanel.knobs[2].subscribe(vowel$);
+        this.soundPanel.knobs[3].subscribe(vowel$);
         this.subs.push(vowel$.subscribe((value: number) => {
             if (this.soundUnit) {
                 this.soundUnit.setVowel(FormantDefinitions.all[Math.floor(value)].vowel);
@@ -143,7 +158,7 @@ export default class GlottalInput implements IDisposable {
 
         // vibrato amount
         let vibratoAmount$: Rx.Subject<number> = new Rx.Subject();
-        this.soundPanel.knobs[3].subscribe(vibratoAmount$);
+        this.soundPanel.knobs[4].subscribe(vibratoAmount$);
         this.subs.push(vibratoAmount$.subscribe((value: number) => {
             if (this.soundUnit) {
                 this.soundUnit.setVibratoAmount(value);
@@ -152,7 +167,7 @@ export default class GlottalInput implements IDisposable {
 
         // vibrato frequency
         let vibratoFreq$: Rx.Subject<number> = new Rx.Subject();
-        this.soundPanel.knobs[4].subscribe(vibratoFreq$);
+        this.soundPanel.knobs[5].subscribe(vibratoFreq$);
         this.subs.push(vibratoFreq$.subscribe((value: number) => {
             if (this.soundUnit) {
                 this.soundUnit.setVibratoFrequency(value);
@@ -161,7 +176,7 @@ export default class GlottalInput implements IDisposable {
 
         // vibrato depth
         let vibratoDepth$: Rx.Subject<number> = new Rx.Subject();
-        this.soundPanel.knobs[5].subscribe(vibratoDepth$);
+        this.soundPanel.knobs[6].subscribe(vibratoDepth$);
         this.subs.push(vibratoDepth$.subscribe((value: number) => {
             if (this.soundUnit) {
                 this.soundUnit.setVibratoDepth(value);

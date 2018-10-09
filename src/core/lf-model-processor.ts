@@ -3,6 +3,7 @@ const QUANTUM_FRAMES: number = 128;
 
 const INIT_FREQUENCY: number = 120;
 const INIT_SHAPE_PARAM: number = 1;
+const APIRATION_PARAM: number = 0;
 
 class LfModel extends AudioWorkletProcessor {
 
@@ -27,6 +28,11 @@ class LfModel extends AudioWorkletProcessor {
             defaultValue: INIT_SHAPE_PARAM,
             minValue: 0.3,
             maxValue: 2.7,
+        }, {
+            name: "aspiration",
+            defaultValue: APIRATION_PARAM,
+            minValue: 0.0,
+            maxValue: 1.0,
         }];
     }
 
@@ -54,9 +60,14 @@ class LfModel extends AudioWorkletProcessor {
             }
 
             // calculate sample and apply it to all output channels
-            let sampleValue: number = this.currentFunction.f(this.frameInWaveform / this.framesPerWaveformCycle);
+            let t: number = this.frameInWaveform / this.framesPerWaveformCycle;
+            let sampleFlowDerivative: number = this.currentFunction.f(t);
+            let sampleAspirationNoiseAmp: number = this.currentFunction.a(t);
             for (let channel: number = 0; channel < output.length; channel++) {
-                output[channel][frame] = sampleValue;
+                let aspirationParam: number = parameters.aspiration[0];
+                output[channel][frame] =
+                    sampleFlowDerivative * (1 - aspirationParam * 0.5) +
+                    aspirationParam * sampleAspirationNoiseAmp * inputs[0][0][frame];
             }
 
             // move to next frame in waveform (or loop to start)
@@ -74,13 +85,19 @@ class LfFunction {
     ta: number;
     tc: number;
     f: (n: number) => number;
+    a: (t: number) => number;
 
-    private constructor(tp: number, te: number, ta: number, tc: number, f: (n: number) => number) {
+    private constructor(
+        tp: number, te: number, ta: number, tc: number,
+        f: (t: number) => number,
+        a: (t: number) => number) {
+
         this.tp = tp;
         this.te = te;
         this.ta = ta;
         this.tc = tc;
         this.f = f;
+        this.a = a;
     }
 
     public static createWaveform = (rd: number): LfFunction => {
@@ -112,13 +129,18 @@ class LfFunction {
         let z: number = Math.log(y);
         let alpha: number = z / (tp / 2 - te);
         let e0: number = -1 / (s * Math.exp(alpha * te));
-        let f: (n: number) => number = (t) =>
+        let f: (t: number) => number = (t) =>
             t < te
                 ? e0 * Math.exp(alpha * t) * Math.sin(omega * t)    // the open phase
                 : (-Math.exp(-epsilon * (t - te)) + shift) / delta; // the return phase
         // ----------------------------------------------------
 
-        return new LfFunction(tp, te, ta, tc, f);
+        const minAmp: number = 0.2;
+
+        // amplitude of aspiration noise (based on an approximation of the glottal "air flow" + constant)
+        let a: (t: number) => number = (t) => t < te ? minAmp + Math.sin(t / te * Math.PI) * (1 - minAmp) : minAmp;
+
+        return new LfFunction(tp, te, ta, tc, f, a);
     }
 }
 

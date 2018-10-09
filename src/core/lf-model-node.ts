@@ -7,6 +7,7 @@ export default class LfModelNode extends AudioWorkletNode {
 
     getFrequency = (): AudioParam => this.parameters.get("frequency");
     getShapeParam = (): AudioParam => this.parameters.get("shapeParam");
+    getAspiration = (): AudioParam => this.parameters.get("aspiration");
 
     public static waveformFunction = (rd: number): LfFunction => {
 

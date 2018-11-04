@@ -1,8 +1,10 @@
+import MainAudio from "./mainAudio";
+
 export default class LfModelNode extends AudioWorkletNode {
 
-    constructor(audioContext: AudioContext) {
+    constructor(mainAudio: MainAudio) {
 
-        super(audioContext, "lf-model-processor");
+        super(mainAudio.audioContext, "lf-model-processor");
     }
 
     getFrequency = (): AudioParam => this.parameters.get("frequency");

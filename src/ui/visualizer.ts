@@ -2,6 +2,7 @@ import "./visualizer.css";
 
 import * as template from "!raw-loader!./visualizer.html";
 import * as $ from "jquery";
+import MainAudio from "../core/mainAudio";
 
 const TEMPLATE_KNOB_ID: string = "##ID##";
 
@@ -9,57 +10,62 @@ export default class Visualizer implements IDisposable {
 
     public id: string;
 
-    private analyserNode: AnalyserNode;
-    private waveform: Float32Array;
-    private scopeContext: CanvasRenderingContext2D;
-    private scopeCanvas: HTMLCanvasElement;
+    private mainAudio: MainAudio;
+    private context: CanvasRenderingContext2D;
+    private canvas: HTMLCanvasElement;
 
     constructor(
         containerId: string,
         id: string,
-        analyserNode: AnalyserNode) {
+        mainAudio: MainAudio) {
 
         this.id = id;
-        this.analyserNode = analyserNode;
 
         // render analyser container
         let renderedTemplate: string = template
             .replace(new RegExp(TEMPLATE_KNOB_ID, "g"), id);
         $(`#${containerId}`).append(renderedTemplate);
 
-        this.waveform = new Float32Array(analyserNode.frequencyBinCount);
-        analyserNode.getFloatTimeDomainData(this.waveform);
+        this.mainAudio = mainAudio;
 
-        this.scopeCanvas = <HTMLCanvasElement>document.getElementById(id);
-        this.scopeCanvas.width = this.waveform.length / 2;
-        this.scopeCanvas.height = 185;
-        this.scopeContext = this.scopeCanvas.getContext("2d")!;
+        this.canvas = <HTMLCanvasElement>document.getElementById(id);
+        let pixelRatio: number = window.devicePixelRatio || 1;
+        var rect: ClientRect = this.canvas.getBoundingClientRect();
+        this.canvas.width = rect.width * pixelRatio;
+        this.canvas.height = rect.height * pixelRatio;
+        this.context = this.canvas.getContext("2d")!;
 
-        this.updateWaveform();
         this.drawOscilloscope();
-    }
-
-    private updateWaveform = () => {
-
-        requestAnimationFrame(this.updateWaveform);
-        this.analyserNode.getFloatTimeDomainData(this.waveform);
     }
 
     private drawOscilloscope = () => {
 
         requestAnimationFrame(this.drawOscilloscope);
-        this.scopeContext.clearRect(0, 0, this.scopeCanvas.width, this.scopeCanvas.height);
-        this.scopeContext.beginPath();
-        for (let i: number = 0; i < this.waveform.length; i++) {
-            const x: number = i/2;
-            const y: number = (0.5 + this.waveform[i] / 2) * this.scopeCanvas.height;
-            if (i === 0) {
-                this.scopeContext.moveTo(x, y);
-            } else {
-                this.scopeContext.lineTo(x, y);
-            }
+
+        const FRAC: number = 4;
+        const AMP: number = 1.5;
+
+        let frequencies: Float32Array = this.mainAudio.getFrequencies();
+        let len: number = frequencies.length;
+        let barWidth: number = this.canvas.width / len * FRAC - 3;
+
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        for (let i: number = 0; i < len / FRAC; i++) {
+
+            let x: number = this.canvas.width * (i / len) * FRAC;
+
+            this.context.fillStyle = "rgba(237, 239, 240, 1)";
+            this.context.fillRect(x, 0, barWidth, this.canvas.height);
+
+            let y: number = -frequencies[i] * AMP - 25;
+
+            this.context.fillStyle = "#b6cfe2";
+            this.context.fillRect(x, y, barWidth, this.canvas.height);
+
+            this.context.fillStyle = "rgb(94, 103, 111)";
+            this.context.fillRect(x, y, barWidth, 3);
         }
-        this.scopeContext.stroke();
     }
 
     dispose(): void {

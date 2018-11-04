@@ -4,6 +4,7 @@ import LfModelNode from "./lf-model-node";
 import { ModulationEvent } from "./note-handler";
 import SoundUnit from "./sound-unit";
 import FormantDefinitions, { Vowel } from "./formants";
+import MainAudio from "./mainAudio";
 
 interface IFormantFilter {
     filter: any;
@@ -14,31 +15,31 @@ const NB_FORMANTS: number = 5;
 
 export default class GlottalSynthesizer extends SoundUnit {
 
-    private audioContext: AudioContext;
+    private mainAudio: MainAudio;
     private lfModel: LfModelNode;
     private formantFilters: IFormantFilter[];
     private vibrato: any;
 
     private sourceSwitch: any;
 
-    constructor(audioContext: AudioContext, frequency: number, vowel: Vowel) {
+    constructor(mainAudio: MainAudio, frequency: number, vowel: Vowel) {
 
         super();
 
         console.log("Creating a glottal synth");
 
         // build an audio graph starting from native Web Audio
-        this.audioContext = audioContext;
+        this.mainAudio = mainAudio;
 
-        this.lfModel = new LfModelNode(this.audioContext);
+        this.lfModel = new LfModelNode(this.mainAudio);
         this.lfModel.port.onmessage = (msg) => console.log(`Message from sound processor: ${msg.data}`);
-        this.lfModel.getFrequency().setValueAtTime(frequency, audioContext.currentTime);
+        this.lfModel.getFrequency().setValueAtTime(frequency, mainAudio.audioContext.currentTime);
 
         let aspirationNoise: AudioNode = this.createAspirationNoiseNode();
         aspirationNoise.connect(this.lfModel); // then connects to sourceSwitch
 
         // continue the audio graph on Tone.js (works, somehow)
-        Tone.setContext(this.audioContext);
+        Tone.setContext(this.mainAudio.audioContext);
         this.sourceSwitch = new Tone.Gain();
 
         this.vibrato = new Tone.Vibrato({
@@ -74,23 +75,23 @@ export default class GlottalSynthesizer extends SoundUnit {
         let comp: any = new Tone.Compressor(-30, 20);
         let masterVolume: any = new Tone.Volume(0);
         this.vibrato.chain(comp, masterVolume);
-        masterVolume.toMaster();
+        this.mainAudio.toMaster(masterVolume);
     }
 
     private createAspirationNoiseNode(this: GlottalSynthesizer): AudioNode {
 
-        const BUFFER_SIZE: number = this.audioContext.sampleRate * 4;
-        let buffer: AudioBuffer = this.audioContext.createBuffer(1, BUFFER_SIZE, this.audioContext.sampleRate);
+        const BUFFER_SIZE: number = this.mainAudio.audioContext.sampleRate * 4;
+        let buffer: AudioBuffer = this.mainAudio.audioContext.createBuffer(1, BUFFER_SIZE, this.mainAudio.audioContext.sampleRate);
         let bufferData: Float32Array = buffer.getChannelData(0);
         for (let i: number = 0; i < BUFFER_SIZE; i++) {
             bufferData[i] = Math.random();
         }
 
-        let whiteNoise: AudioBufferSourceNode = this.audioContext.createBufferSource();
+        let whiteNoise: AudioBufferSourceNode = this.mainAudio.audioContext.createBufferSource();
         whiteNoise.buffer = buffer;
         whiteNoise.loop = true;
 
-        let aspirationFilter: BiquadFilterNode = this.audioContext.createBiquadFilter();
+        let aspirationFilter: BiquadFilterNode = this.mainAudio.audioContext.createBiquadFilter();
         aspirationFilter.type = "lowpass";
         aspirationFilter.frequency.value = 1800;
         aspirationFilter.Q.value = 0;
@@ -114,11 +115,11 @@ export default class GlottalSynthesizer extends SoundUnit {
     }
 
     public setAspiration(this: GlottalSynthesizer, amount: number): void {
-        this.lfModel.getAspiration().setValueAtTime(amount / 100, this.audioContext.currentTime);
+        this.lfModel.getAspiration().setValueAtTime(amount / 100, this.mainAudio.audioContext.currentTime);
     }
 
     public setFrequency(this: GlottalSynthesizer, frequency: number): void {
-        this.lfModel.getFrequency().setValueAtTime(frequency, this.audioContext.currentTime);
+        this.lfModel.getFrequency().setValueAtTime(frequency, this.mainAudio.audioContext.currentTime);
     }
 
     public setShapeParam(this: GlottalSynthesizer, rd: number): any {

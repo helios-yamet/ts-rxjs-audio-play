@@ -1,17 +1,18 @@
-body {
-    padding-top: 50px;
-}
+#header {
 
-#content {
-
-    margin-top: 20px;
-    padding: 20px;
     width: 100%;
 
     /* visual */
     background-color: rgb(228, 220, 220);
-    border: 1px solid #3F3F3F;
-    border-radius: 3px;
+}
+
+#content {
+
+    padding: 10px 20px;
+    width: 100%;
+
+    /* visual */
+    background-color: rgb(228, 220, 220);
 }
 
 h2 {

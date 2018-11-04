@@ -9,20 +9,26 @@ import GlottalInput from "./core/glottal-input";
 import InputController from "./core/input-controller";
 import FunctionPlotter from "./ui/function-plotter";
 import LfModelNode, { LfFunction } from "./core/lf-model-node";
+import Visualizer from "./ui/visualizer";
+import MainAudio from "./core/mainAudio";
 
 export default class Main implements IDisposable {
 
     private inputController: InputController;
     private input: GlottalInput;
+    private visualizer: Visualizer;
     private plot: FunctionPlotter;
 
     constructor() {
 
         $("#content").html(template);
 
-        let audioContext: AudioContext = new AudioContext();
+        let mainAudio: MainAudio = new MainAudio();
+
         this.inputController = new InputController();
-        this.input = new GlottalInput("main-controls-container", "glottal", audioContext, this.inputController);
+        this.input = new GlottalInput("main-controls-container", "glottal", mainAudio, this.inputController);
+
+        this.visualizer = new Visualizer("header", "visualizer", mainAudio);
 
         // plot the LF-model waveform
         let lf: LfFunction = LfModelNode.waveformFunction(1);
@@ -41,6 +47,7 @@ export default class Main implements IDisposable {
 
         this.inputController.dispose();
         this.input.dispose();
+        this.visualizer.dispose();
     }
 }
 

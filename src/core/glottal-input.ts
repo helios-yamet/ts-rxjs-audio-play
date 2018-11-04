@@ -6,6 +6,7 @@ import InputController from "./input-controller";
 import NoteHandler from "./note-handler";
 import Panel from "../ui/panel";
 import FormantDefinitions, { Vowel } from "./formants";
+import MainAudio from "./mainAudio";
 
 export default class GlottalInput implements IDisposable {
 
@@ -23,19 +24,19 @@ export default class GlottalInput implements IDisposable {
     constructor(
         containerId: string,
         id: string,
-        audioContext: AudioContext,
+        mainAudio: MainAudio,
         inputController: InputController) {
 
         this.id = id;
         this.inputController = inputController;
 
         // load worklet in audio context
-        Rx.Observable.fromPromise(audioContext.audioWorklet.addModule(lfModule))
+        Rx.Observable.fromPromise(mainAudio.audioContext.audioWorklet.addModule(lfModule))
             .take(1)
             .subscribe(
                 () => {
                     console.log(`Worklet processor '${lfModule}' loaded`);
-                    this.soundUnit = new GlottalSynthetizer(audioContext, 120, Vowel.A_Bass);
+                    this.soundUnit = new GlottalSynthetizer(mainAudio, 120, Vowel.A_Bass);
                     this.inputController.setSoundUnit(this.soundUnit);
                 },
                 (error: any) => console.error(error)
@@ -109,14 +110,9 @@ export default class GlottalInput implements IDisposable {
         this.inputPanel.knobs[0].subscribe(inputSignal$);
         this.noteActive = false;
         this.subs.push(inputSignal$.subscribe(() => {
-            if (!this.noteActive) {
+            if (!this.noteActive && this.soundUnit) {
                 this.noteActive = true;
-                NoteHandler.startNote(
-                    new GlottalSynthetizer(
-                        audioContext,
-                        this.soundPanel.knobs[2].value,
-                        Math.random() < .5 ? Vowel.A_Tenor : Vowel.I_Tenor),
-                    inputSignal$, () => this.noteActive = false);
+                NoteHandler.startNote(this.soundUnit, inputSignal$, () => this.noteActive = false);
             }
         }));
 
@@ -188,5 +184,6 @@ export default class GlottalInput implements IDisposable {
         this.subs.forEach((s) => s.unsubscribe());
         this.inputPanel.dispose();
         this.soundPanel.dispose();
+        this.soundUnit!.dispose();
     }
 }

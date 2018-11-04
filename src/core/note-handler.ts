@@ -25,7 +25,6 @@ export default class NoteHandler {
                 (error: any) => console.error(error),
                 () => {
                     soundUnit.noteOff();
-                    soundUnit.dispose();
                     done();
                 });
     }

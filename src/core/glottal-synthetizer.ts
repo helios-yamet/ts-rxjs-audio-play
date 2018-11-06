@@ -1,7 +1,7 @@
 import * as Tone from "tone";
 import FormantDefinitions, { Vowel } from "./formants";
 import LfModelNode from "./lf-model-node";
-import MainAudio from "./mainAudio";
+import MainAudio from "./main-audio";
 import { ModulationEvent } from "./note-handler";
 import SoundUnit from "./sound-unit";
 

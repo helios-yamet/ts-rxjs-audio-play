@@ -2,7 +2,7 @@ import "./visualizer.css";
 
 import * as template from "!raw-loader!./visualizer.html";
 import * as $ from "jquery";
-import MainAudio from "../core/mainAudio";
+import MainAudio from "../core/main-audio";
 
 const TEMPLATE_KNOB_ID: string = "##ID##";
 

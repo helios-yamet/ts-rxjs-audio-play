@@ -6,7 +6,9 @@ import InputController from "./input-controller";
 import NoteHandler from "./note-handler";
 import Panel from "../ui/panel";
 import FormantDefinitions, { Vowel } from "./formants";
-import MainAudio from "./mainAudio";
+import MainAudio from "./main-audio";
+import FunctionPlotter from "../ui/function-plotter";
+import LfModelNode from "./lf-model-node";
 
 export default class GlottalInput implements IDisposable {
 
@@ -14,7 +16,10 @@ export default class GlottalInput implements IDisposable {
     public shapeParam$: Rx.Subject<number>;
 
     private inputPanel: Panel;
-    private soundPanel: Panel;
+    private glottalPanel: Panel;
+    private plot: FunctionPlotter;
+    private vibratoPanel: Panel;
+    private envelopePanel: Panel;
     private inputController: InputController;
     private subs: Rx.Subscription[];
 
@@ -55,15 +60,15 @@ export default class GlottalInput implements IDisposable {
             this.inputController);
 
         // create sound unit panel
-        this.soundPanel = new Panel(
-            containerId, `${this.id}-sound`, `Glottal Flow Synthesis`,
+        this.glottalPanel = new Panel(
+            containerId, `${this.id}-sound`, `Vowel Synthesis`,
             [{
                 id: "rd",
                 name: "Shape (Rd)",
                 minValue: 0,
                 maxValue: 100,
                 initValue: 50
-            },{
+            }, {
                 id: "aspi",
                 name: "Apiration",
                 minValue: 0,
@@ -82,25 +87,43 @@ export default class GlottalInput implements IDisposable {
                 maxValue: FormantDefinitions.all.length - 1,
                 initValue: 20,
                 displayValue: (v) => FormantDefinitions.all[Math.floor(v)].name
-            }, {
+            }],
+            this.inputController);
+
+        // plot the LF-model waveform
+        let lf: LfFunction = LfModelNode.waveformFunction(1);
+        let labels: string[] = ["Ts", "Tp", "Te", "Tc"];
+        this.plot = new FunctionPlotter("main-controls-container", "plotter",
+            "LF-Model waveform", lf.f, labels, [0, lf.tp, lf.te, lf.tc]);
+
+        // create vibrato panel
+        this.vibratoPanel = new Panel(
+            containerId, `${this.id}-vibrato`, `Vibrato`,
+            [{
                 id: "vib-amt",
-                name: "Vib Amnt",
+                name: "Amount",
                 minValue: 0,
                 maxValue: 100,
                 initValue: 50
             }, {
                 id: "vib-freq",
-                name: "Vib Freq",
+                name: "Frequency",
                 minValue: 0,
                 maxValue: 100,
                 initValue: 50
             }, {
                 id: "vib-depth",
-                name: "Vib Depth",
+                name: "Depth",
                 minValue: 0,
                 maxValue: 100,
                 initValue: 10
-            }, {
+            }],
+            this.inputController);
+
+        // create envelope panel
+        this.envelopePanel = new Panel(
+            containerId, `${this.id}-envelope`, `Envelope`,
+            [{
                 id: "env-attack",
                 name: "Env Attack",
                 minValue: 0,
@@ -142,16 +165,22 @@ export default class GlottalInput implements IDisposable {
 
         // waveform shape (Rd)
         this.shapeParam$ = new Rx.Subject();
-        this.soundPanel.knobs[0].subscribe(this.shapeParam$);
+        this.glottalPanel.knobs[0].subscribe(this.shapeParam$);
         this.subs.push(this.shapeParam$.subscribe((value: number) => {
             if (this.soundUnit) {
                 this.soundUnit.setShapeParam(value);
             }
         }));
 
+        // update the plot
+        this.shapeParam$.subscribe((v: number) => {
+            lf = LfModelNode.waveformFunction(0.024 * v + 0.3);
+            this.plot.updateChart(lf.f, labels, [0, lf.tp, lf.te, lf.tc]);
+        });
+
         // aspiration amount
         let aspiration$: Rx.Subject<number> = new Rx.Subject();
-        this.soundPanel.knobs[1].subscribe(aspiration$);
+        this.glottalPanel.knobs[1].subscribe(aspiration$);
         this.subs.push(aspiration$.subscribe((value: number) => {
             if (this.soundUnit) {
                 this.soundUnit.setAspiration(value);
@@ -160,7 +189,7 @@ export default class GlottalInput implements IDisposable {
 
         // frequency
         let frequency$: Rx.Subject<number> = new Rx.Subject();
-        this.soundPanel.knobs[2].subscribe(frequency$);
+        this.glottalPanel.knobs[2].subscribe(frequency$);
         this.subs.push(frequency$.subscribe((value: number) => {
             if (this.soundUnit) {
                 this.soundUnit.setFrequency(value);
@@ -169,7 +198,7 @@ export default class GlottalInput implements IDisposable {
 
         // vowel
         let vowel$: Rx.Subject<number> = new Rx.Subject();
-        this.soundPanel.knobs[3].subscribe(vowel$);
+        this.glottalPanel.knobs[3].subscribe(vowel$);
         this.subs.push(vowel$.subscribe((value: number) => {
             if (this.soundUnit) {
                 this.soundUnit.setVowel(FormantDefinitions.all[Math.floor(value)].vowel, .4);
@@ -178,7 +207,7 @@ export default class GlottalInput implements IDisposable {
 
         // vibrato amount
         let vibratoAmount$: Rx.Subject<number> = new Rx.Subject();
-        this.soundPanel.knobs[4].subscribe(vibratoAmount$);
+        this.vibratoPanel.knobs[0].subscribe(vibratoAmount$);
         this.subs.push(vibratoAmount$.subscribe((value: number) => {
             if (this.soundUnit) {
                 this.soundUnit.setVibratoAmount(value);
@@ -187,7 +216,7 @@ export default class GlottalInput implements IDisposable {
 
         // vibrato frequency
         let vibratoFreq$: Rx.Subject<number> = new Rx.Subject();
-        this.soundPanel.knobs[5].subscribe(vibratoFreq$);
+        this.vibratoPanel.knobs[1].subscribe(vibratoFreq$);
         this.subs.push(vibratoFreq$.subscribe((value: number) => {
             if (this.soundUnit) {
                 this.soundUnit.setVibratoFrequency(value);
@@ -196,7 +225,7 @@ export default class GlottalInput implements IDisposable {
 
         // vibrato depth
         let vibratoDepth$: Rx.Subject<number> = new Rx.Subject();
-        this.soundPanel.knobs[6].subscribe(vibratoDepth$);
+        this.vibratoPanel.knobs[2].subscribe(vibratoDepth$);
         this.subs.push(vibratoDepth$.subscribe((value: number) => {
             if (this.soundUnit) {
                 this.soundUnit.setVibratoDepth(value);
@@ -205,7 +234,7 @@ export default class GlottalInput implements IDisposable {
 
         // envelope attack
         let envelopeAttack$: Rx.Subject<number> = new Rx.Subject();
-        this.soundPanel.knobs[7].subscribe(envelopeAttack$);
+        this.envelopePanel.knobs[0].subscribe(envelopeAttack$);
         this.subs.push(envelopeAttack$.subscribe((value: number) => {
             if (this.soundUnit) {
                 this.soundUnit.setEnvelopeAttack(value);
@@ -214,7 +243,7 @@ export default class GlottalInput implements IDisposable {
 
         // envelope decay
         let envelopeDecay$: Rx.Subject<number> = new Rx.Subject();
-        this.soundPanel.knobs[8].subscribe(envelopeDecay$);
+        this.envelopePanel.knobs[1].subscribe(envelopeDecay$);
         this.subs.push(envelopeDecay$.subscribe((value: number) => {
             if (this.soundUnit) {
                 this.soundUnit.setEnvelopeDecay(value);
@@ -223,7 +252,7 @@ export default class GlottalInput implements IDisposable {
 
         // envelope sustain
         let envelopeSustain$: Rx.Subject<number> = new Rx.Subject();
-        this.soundPanel.knobs[9].subscribe(envelopeSustain$);
+        this.envelopePanel.knobs[2].subscribe(envelopeSustain$);
         this.subs.push(envelopeSustain$.subscribe((value: number) => {
             if (this.soundUnit) {
                 this.soundUnit.setEnvelopeSustain(value);
@@ -232,7 +261,7 @@ export default class GlottalInput implements IDisposable {
 
         // envelope release
         let envelopeRelease$: Rx.Subject<number> = new Rx.Subject();
-        this.soundPanel.knobs[10].subscribe(envelopeRelease$);
+        this.envelopePanel.knobs[3].subscribe(envelopeRelease$);
         this.subs.push(envelopeRelease$.subscribe((value: number) => {
             if (this.soundUnit) {
                 this.soundUnit.setEnvelopeRelease(value);
@@ -243,7 +272,9 @@ export default class GlottalInput implements IDisposable {
     dispose(): void {
         this.subs.forEach((s) => s.unsubscribe());
         this.inputPanel.dispose();
-        this.soundPanel.dispose();
+        this.glottalPanel.dispose();
+        this.vibratoPanel.dispose();
+        this.envelopePanel.dispose();
         this.soundUnit!.dispose();
     }
 }

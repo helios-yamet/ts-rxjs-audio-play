@@ -1,4 +1,4 @@
-import MainAudio from "./mainAudio";
+import MainAudio from "./main-audio";
 
 export default class LfModelNode extends AudioWorkletNode {
 
@@ -46,9 +46,15 @@ export default class LfModelNode extends AudioWorkletNode {
                 : (-Math.exp(-epsilon * (t - te)) + shift) / delta; // the return phase
         // ----------------------------------------------------
 
-        return new LfFunction(tp, te, ta, tc, f);
+        const minAmp: number = 0.2;
+
+        // amplitude of aspiration noise (based on an approximation of the glottal "air flow" + constant)
+        let a: (t: number) => number = (t) => t < te ? minAmp + Math.sin(t / te * Math.PI) * (1 - minAmp) : minAmp;
+
+        return new LfFunction(tp, te, ta, tc, f, a);
     }
 }
+
 
 export class LfFunction {
 
@@ -57,12 +63,18 @@ export class LfFunction {
     ta: number;
     tc: number;
     f: (n: number) => number;
+    a: (t: number) => number;
 
-    constructor(tp: number, te: number, ta: number, tc: number, f: (n: number) => number) {
+    constructor(
+        tp: number, te: number, ta: number, tc: number,
+        f: (t: number) => number,
+        a: (t: number) => number) {
+
         this.tp = tp;
         this.te = te;
         this.ta = ta;
         this.tc = tc;
         this.f = f;
+        this.a = a;
     }
 }

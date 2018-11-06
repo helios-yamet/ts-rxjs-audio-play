@@ -69,13 +69,12 @@ export default class GlottalSynthesizer extends SoundUnit {
                 volume: volume
             });
         }
-        this.setVowel(vowel, 0);
+        this.setVowel(vowel);
 
         // link it all together
         let comp: any = new Tone.Compressor(-30, 20);
-        let masterVolume: any = new Tone.Volume(0);
-        this.vibrato.chain(comp, masterVolume);
-        this.mainAudio.toMaster(masterVolume);
+        this.vibrato.connect(comp);
+        this.mainAudio.toMaster(comp);
     }
 
     private createAspirationNoiseNode(this: GlottalSynthesizer): AudioNode {
@@ -106,8 +105,19 @@ export default class GlottalSynthesizer extends SoundUnit {
         this.lfModel.connect(this.sourceSwitch);
     }
 
+    // simple modulation which maps to frequency (female voice, starts gluttural and goes softer)
     public modulate(this: GlottalSynthesizer, modulation: ModulationEvent): void {
-        this.lfModel.getShapeParam().setValueAtTime(this.mapRange(modulation.absolute, 0.3, 2.7), 0);
+
+        if (modulation.firstEvent) {
+            this.setVowel(Vowel.A_Soprano);
+            this.setVibratoAmount(70);
+            this.setVibratoFrequency(30);
+            this.setVibratoDepth(20);
+        }
+
+        const G: number = 25;
+        this.setShapeParam(modulation.absolute > G ? (modulation.absolute - G) / (100 - G) * 100 : 0);
+        this.setFrequency(super.mapRange(modulation.absolute, 30, 450));
     }
 
     public noteOff(this: GlottalSynthesizer): void {
@@ -142,16 +152,22 @@ export default class GlottalSynthesizer extends SoundUnit {
 
         let i: number = 0;
         const magicFactor: number = 1.2;
-        rampTime = rampTime ? rampTime : 0.1;
         FormantDefinitions.formantsFor(vowel, NB_FORMANTS).forEach((f) => {
 
             let freq: number = f[0];
             let amp: number = f[1]; // ignoring this, in favor of magic factor hack
             let width: number = f[2];
             let filter: IFormantFilter = this.formantFilters[i];
-            filter.filter.frequency.exponentialRampTo(freq, rampTime);
-            filter.filter.Q.exponentialRampTo(freq / width, rampTime);
-            filter.volume.volume.exponentialRampTo(i*magicFactor, rampTime);
+
+            if (rampTime) {
+                filter.filter.frequency.exponentialRampTo(freq, rampTime);
+                filter.filter.Q.exponentialRampTo(freq / width, rampTime);
+                filter.volume.volume.exponentialRampTo(i * magicFactor, rampTime);
+            } else {
+                filter.filter.frequency.value = freq;
+                filter.filter.Q.value = freq / width;
+                filter.volume.volume.value = i * magicFactor;
+            }
             i++;
         });
     }

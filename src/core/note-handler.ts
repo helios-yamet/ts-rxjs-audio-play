@@ -3,7 +3,7 @@ import SoundUnit from "./sound-unit";
 
 const DEBOUNCE_MILLIS: number = 500;
 
-type SignalEvent = [number, number, number]; // first value, latest value and time
+type SignalEvent = [number, number, number, boolean]; // first value, latest value and time, isFirst
 
 /**
  * Class responsible for the life-cycle of a particular "note". It analyzes the input
@@ -17,8 +17,7 @@ export default class NoteHandler {
         signal$
             .takeUntil(signal$.debounceTime(DEBOUNCE_MILLIS))
             .scan<number, SignalEvent>((acc:SignalEvent, value: number, index: number) =>
-                [index === 0 ? value : acc[0], value, Rx.Scheduler.animationFrame.now()],
-                [0, 0, 0])
+                [index === 0 ? value : acc[0], value, Rx.Scheduler.animationFrame.now(), index === 0])
             .pairwise()
             .subscribe(
                 (value: SignalEvent[]) => soundUnit.modulate(new ModulationEvent(value)),
@@ -35,6 +34,7 @@ export enum Direction { Up, Down }
 // todo -> improve this, document it and test it properly
 export class ModulationEvent {
 
+    public firstEvent: boolean;
     public absolute: number;
     public relative: number;
     public direction: Direction;
@@ -42,6 +42,7 @@ export class ModulationEvent {
 
     constructor(lastValues: SignalEvent[]) {
 
+        this.firstEvent = lastValues[0][3];
         let latest: SignalEvent = lastValues[lastValues.length-1];
         this.absolute = latest[1];
         this.relative = latest[0] - latest[1];

@@ -157,6 +157,22 @@ export default class GlottalSynthesizer extends SoundUnit {
         this.vibrato.depth.setValueAtTime(this.mapRange(amount, 0, 1), 0);
     }
 
+    public setEnvelopeAttack(this: GlottalSynthesizer, amount: number): void {
+        this.envelope.attack = this.mapRange(amount, 0.001, 2);
+    }
+
+    public setEnvelopeDecay(this: GlottalSynthesizer, amount: number): void {
+        this.envelope.decay = this.mapRange(amount, 0, 2);
+    }
+
+    public setEnvelopeSustain(this: GlottalSynthesizer, amount: number): void {
+        this.envelope.sustain = this.mapRange(amount, 0, 1);
+    }
+
+    public setEnvelopeRelease(this: GlottalSynthesizer, amount: number): void {
+        this.envelope.release = this.mapRange(amount, 0, 3);
+    }
+
     public setVowel(this: GlottalSynthesizer, vowel: Vowel, rampTime?: number): any {
 
         let i: number = 0;

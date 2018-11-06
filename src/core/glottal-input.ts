@@ -100,6 +100,30 @@ export default class GlottalInput implements IDisposable {
                 minValue: 0,
                 maxValue: 100,
                 initValue: 10
+            }, {
+                id: "env-attack",
+                name: "Env Attack",
+                minValue: 0,
+                maxValue: 100,
+                initValue: 20
+            }, {
+                id: "env-decay",
+                name: "Env Decay",
+                minValue: 0,
+                maxValue: 100,
+                initValue: 0
+            }, {
+                id: "env-sustain",
+                name: "Env Sustain",
+                minValue: 0,
+                maxValue: 100,
+                initValue: 100
+            }, {
+                id: "env-release",
+                name: "Env Release",
+                minValue: 0,
+                maxValue: 100,
+                initValue: 15
             }],
             this.inputController);
 
@@ -176,6 +200,42 @@ export default class GlottalInput implements IDisposable {
         this.subs.push(vibratoDepth$.subscribe((value: number) => {
             if (this.soundUnit) {
                 this.soundUnit.setVibratoDepth(value);
+            }
+        }));
+
+        // envelope attack
+        let envelopeAttack$: Rx.Subject<number> = new Rx.Subject();
+        this.soundPanel.knobs[7].subscribe(envelopeAttack$);
+        this.subs.push(envelopeAttack$.subscribe((value: number) => {
+            if (this.soundUnit) {
+                this.soundUnit.setEnvelopeAttack(value);
+            }
+        }));
+
+        // envelope decay
+        let envelopeDecay$: Rx.Subject<number> = new Rx.Subject();
+        this.soundPanel.knobs[8].subscribe(envelopeDecay$);
+        this.subs.push(envelopeDecay$.subscribe((value: number) => {
+            if (this.soundUnit) {
+                this.soundUnit.setEnvelopeDecay(value);
+            }
+        }));
+
+        // envelope sustain
+        let envelopeSustain$: Rx.Subject<number> = new Rx.Subject();
+        this.soundPanel.knobs[9].subscribe(envelopeSustain$);
+        this.subs.push(envelopeSustain$.subscribe((value: number) => {
+            if (this.soundUnit) {
+                this.soundUnit.setEnvelopeSustain(value);
+            }
+        }));
+
+        // envelope release
+        let envelopeRelease$: Rx.Subject<number> = new Rx.Subject();
+        this.soundPanel.knobs[10].subscribe(envelopeRelease$);
+        this.subs.push(envelopeRelease$.subscribe((value: number) => {
+            if (this.soundUnit) {
+                this.soundUnit.setEnvelopeRelease(value);
             }
         }));
     }

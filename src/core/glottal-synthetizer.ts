@@ -158,7 +158,7 @@ export default class GlottalSynthesizer extends SoundUnit {
     }
 
     public setEnvelopeAttack(this: GlottalSynthesizer, amount: number): void {
-        this.envelope.attack = this.mapRange(amount, 0.001, 2);
+        this.envelope.attack = this.mapRange(amount, 0.1, 2);
     }
 
     public setEnvelopeDecay(this: GlottalSynthesizer, amount: number): void {

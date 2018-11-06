@@ -18,7 +18,7 @@ export default class InputController implements IDisposable {
 
     private knobs: Knob[];
     private activeKnob: Knob | undefined;
-    private activeKnobIndex: number | undefined;
+    private activeKnobIndex: number;
 
     private subscriptions: Rx.Subscription[];
     private soundUnit: SoundUnit | undefined;
@@ -26,11 +26,13 @@ export default class InputController implements IDisposable {
     constructor() {
 
         this.knobs = [];
+        this.activeKnobIndex = 0;
         this.subscriptions = [];
 
-        this.subscriptions.push(this.connectMidiController());
-        this.subscriptions.push(this.numPadControl());
-        this.subscriptions.push(this.arrowsSelectControl());
+        this.connectMidiController();
+        this.setupKeyboardSpacebar();
+        this.setupKeyBoardNumPad();
+        this.setupKeyboardArrows();
     }
 
     registerKnob = (knob: Knob) => {
@@ -80,7 +82,7 @@ export default class InputController implements IDisposable {
     /**
      * Connect to a MIDI controller (just pick the first found)
      */
-    private connectMidiController = function (this: InputController): Rx.Subscription {
+    private connectMidiController = function (this: InputController): void {
 
         let midiInputs$: Rx.Observable<WebMidi.MIDIMessageEvent> = Rx.Observable.fromPromise(navigator.requestMIDIAccess())
             .flatMap((access: WebMidi.MIDIAccess) => {
@@ -98,10 +100,9 @@ export default class InputController implements IDisposable {
             })
             .distinctUntilChanged();
 
-        return midiInputs$.subscribe(midiEvent => {
+        this.subscriptions.push(midiInputs$.subscribe(midiEvent => {
 
             let eventId: number = midiEvent.data[0];
-
             switch (eventId) {
 
                 case MIDI_CONTROL_CHANGE:
@@ -146,13 +147,33 @@ export default class InputController implements IDisposable {
             }
         },
             error => console.error(error)
-        );
+        ));
+    };
+
+    private setupKeyboardSpacebar = function (this: InputController): void {
+
+        const SPACEBAR: number = 32;
+        this.subscriptions.push(Rx.Observable.fromEvent<KeyboardEvent>(document, "keydown")
+            .filter(e => e.keyCode === SPACEBAR && !e.repeat)
+            .subscribe(e => {
+                if (this.soundUnit) {
+                    this.soundUnit.noteOn();
+                }
+            }, error => console.error(error)));
+
+        this.subscriptions.push(Rx.Observable.fromEvent<KeyboardEvent>(document, "keyup")
+            .filter(e => e.keyCode === SPACEBAR)
+            .subscribe(e => {
+                if (this.soundUnit) {
+                    this.soundUnit.noteOff();
+                }
+            }, error => console.error(error)));
     };
 
     /**
      * Control input from keyboard (will produce a value shortly after no additional number has been typed)
      */
-    private numPadControl = function (this: InputController): Rx.Subscription {
+    private setupKeyBoardNumPad = function (this: InputController): void {
 
         const KEY0: number = 48;
         const KEY9: number = 57;
@@ -182,41 +203,58 @@ export default class InputController implements IDisposable {
                 return value;
             });
 
-        return stream$.subscribe(
+        this.subscriptions.push(stream$.subscribe(
             state => {
                 if (this.activeKnob) {
                     let normalizedValue: number = Math.min(this.activeKnob.maxValue, Math.max(this.activeKnob.minValue, state));
                     this.activeKnob.next(normalizedValue);
                 }
             },
-            error => console.error(error));
+            error => console.error(error)));
     };
 
     /**
      * Control input from keyboard (will select next or previous knob based on registered order)
      */
-    private arrowsSelectControl = function (this: InputController): Rx.Subscription {
+    private setupKeyboardArrows = function (this: InputController): void {
 
+        const KEY_UP: number = 38;
         const KEY_LEFT: number = 37;
         const KEY_RIGHT: number = 39;
+        const KEY_DOWN: number = 40;
 
         // modulo function which works for negative (js has a funny modulo function)
         const arrayIndex: (i: number, length: number) => number = (x, n) => (x % n + n) % n;
 
-        return Rx.Observable.fromEvent<KeyboardEvent>(document, "keydown")
-            .map((event) => {
-                switch (event.keyCode) {
-                    case KEY_LEFT: return -1;
-                    case KEY_RIGHT: return 1;
-                    default: return 0;
-                }
-            })
-            .filter(x => x !== 0)
+        let speedUpRepeat: number = 1;
+        this.subscriptions.push(Rx.Observable.fromEvent<KeyboardEvent>(document, "keydown")
+            .filter(e => e.keyCode >= KEY_LEFT && e.keyCode <= KEY_DOWN)
             .subscribe(
-                x => {
-                    let test: number = this.activeKnobIndex ? this.activeKnobIndex + x : 0;
-                    this.selectKnobByIndex(arrayIndex(test, this.knobs.length));
+                e => {
+
+                    // a bit of a hack, but it does the trick for now (accelerates)
+                    speedUpRepeat = e.repeat ? speedUpRepeat * 1.1 : 1;
+
+                    switch (e.keyCode) {
+
+                        case KEY_UP:
+                        case KEY_DOWN:
+                            if (this.activeKnob) {
+                                let hack: number = Math.round((39 - e.keyCode) * speedUpRepeat);
+                                let newValue: number = this.activeKnob.value + hack;
+                                let normalizedValue: number = Math.min(this.activeKnob.maxValue,
+                                    Math.max(this.activeKnob.minValue, newValue));
+                                this.activeKnob.next(normalizedValue);
+                            }
+                            break;
+
+                        case KEY_LEFT:
+                        case KEY_RIGHT:
+                            let hack: number = 38 - e.keyCode;
+                            this.selectKnobByIndex(arrayIndex(this.activeKnobIndex - hack, this.knobs.length));
+                            break;
+                    }
                 },
-                error => console.error(error));
+                error => console.error(error)));
     };
 }

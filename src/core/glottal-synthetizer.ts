@@ -1,10 +1,9 @@
 import * as Tone from "tone";
-
+import FormantDefinitions, { Vowel } from "./formants";
 import LfModelNode from "./lf-model-node";
+import MainAudio from "./mainAudio";
 import { ModulationEvent } from "./note-handler";
 import SoundUnit from "./sound-unit";
-import FormantDefinitions, { Vowel } from "./formants";
-import MainAudio from "./mainAudio";
 
 interface IFormantFilter {
     filter: any;
@@ -19,8 +18,7 @@ export default class GlottalSynthesizer extends SoundUnit {
     private lfModel: LfModelNode;
     private formantFilters: IFormantFilter[];
     private vibrato: any;
-
-    private sourceSwitch: any;
+    private envelope: any;
 
     constructor(mainAudio: MainAudio, frequency: number, vowel: Vowel) {
 
@@ -40,7 +38,6 @@ export default class GlottalSynthesizer extends SoundUnit {
 
         // continue the audio graph on Tone.js (works, somehow)
         Tone.setContext(this.mainAudio.audioContext);
-        this.sourceSwitch = new Tone.Gain();
 
         this.vibrato = new Tone.Vibrato({
             maxDelay: 0.005,
@@ -62,7 +59,8 @@ export default class GlottalSynthesizer extends SoundUnit {
             });
 
             let volume: any = new Tone.Volume(0);
-            this.sourceSwitch.chain(filter, volume, this.vibrato);
+            this.lfModel.connect(filter);
+            filter.chain(volume, this.vibrato);
 
             this.formantFilters.push({
                 filter: filter,
@@ -72,9 +70,20 @@ export default class GlottalSynthesizer extends SoundUnit {
         this.setVowel(vowel);
 
         // link it all together
+        let gainNode: any = new Tone.Gain();
+        this.envelope = new Tone.Envelope({
+            attack: .2,
+            decay: 0,
+            sustain: 1,
+            release: .3,
+            attackCurve : "exponential",
+            releaseCurve  : "linear"
+        });
+        this.envelope.connect(gainNode.gain);
+
         let comp: any = new Tone.Compressor(-30, 20);
-        this.vibrato.connect(comp);
-        this.mainAudio.toMaster(comp);
+        this.vibrato.chain(comp, gainNode);
+        this.mainAudio.toMaster(gainNode);
     }
 
     private createAspirationNoiseNode(this: GlottalSynthesizer): AudioNode {
@@ -102,7 +111,7 @@ export default class GlottalSynthesizer extends SoundUnit {
     }
 
     public noteOn(this: GlottalSynthesizer): void {
-        this.lfModel.connect(this.sourceSwitch);
+        this.envelope.triggerAttack();
     }
 
     // simple modulation which maps to frequency (female voice, starts gluttural and goes softer)
@@ -121,7 +130,7 @@ export default class GlottalSynthesizer extends SoundUnit {
     }
 
     public noteOff(this: GlottalSynthesizer): void {
-        this.lfModel.disconnect();
+        this.envelope.triggerRelease();
     }
 
     public setAspiration(this: GlottalSynthesizer, amount: number): void {

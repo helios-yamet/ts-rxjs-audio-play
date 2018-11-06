@@ -148,7 +148,7 @@ export default class GlottalInput implements IDisposable {
         this.soundPanel.knobs[3].subscribe(vowel$);
         this.subs.push(vowel$.subscribe((value: number) => {
             if (this.soundUnit) {
-                this.soundUnit.setVowel(FormantDefinitions.all[Math.floor(value)].vowel);
+                this.soundUnit.setVowel(FormantDefinitions.all[Math.floor(value)].vowel, .4);
             }
         }));
 

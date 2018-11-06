@@ -35,7 +35,9 @@ export default class InputController implements IDisposable {
 
     registerKnob = (knob: Knob) => {
         this.knobs.push(knob);
-        this.selectKnob(knob);
+        if (!this.activeKnob) {
+            this.selectKnob(knob);
+        }
         knob.notifyMidiMapping(this.knobs.length + (MIDI_MAPPING_FIRST_KNOB_ID + 1));
         console.log(`registered knob ${knob.id}`);
     }

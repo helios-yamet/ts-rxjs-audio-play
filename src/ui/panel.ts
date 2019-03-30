@@ -1,5 +1,5 @@
 import "./panel.css";
-import * as template from "!raw-loader!./panel.html";
+import template from "!raw-loader!./panel.html";
 import * as $ from "jquery";
 import InputController from "../core/input-controller";
 import Knob from "./knob";

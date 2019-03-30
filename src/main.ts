@@ -3,7 +3,7 @@ import "./styles.css";
 import "./index.html";
 
 import * as $ from "jquery";
-import * as template from "!raw-loader!./ui/template.html";
+import template from "!raw-loader!./ui/template.html";
 
 import GlottalInput from "./core/glottal-input";
 import InputController from "./core/input-controller";

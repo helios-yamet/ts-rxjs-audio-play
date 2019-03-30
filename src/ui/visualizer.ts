@@ -1,6 +1,6 @@
 import "./visualizer.css";
 
-import * as template from "!raw-loader!./visualizer.html";
+import template from "!raw-loader!./visualizer.html";
 import * as $ from "jquery";
 import MainAudio from "../core/main-audio";
 

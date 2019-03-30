@@ -1,7 +1,7 @@
 import "chartist/dist/chartist.min.css";
 import "./function-plotter.css";
 
-import * as template from "!raw-loader!./function-plotter.html";
+import template from "!raw-loader!./function-plotter.html";
 import * as $ from "jquery";
 import * as Chartist from "chartist";
 

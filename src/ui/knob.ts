@@ -1,6 +1,6 @@
 import "./knob.css";
 
-import * as template from "!raw-loader!./knob.html";
+import template from "!raw-loader!./knob.html";
 import * as $ from "jquery";
 import * as Rx from "rxjs/Rx";
 

@@ -21,24 +21,27 @@ class LfModel extends AudioWorkletProcessor {
 
     static get parameterDescriptors(): ProcessorParams[] {
         return [{
-            name: "frequency",
-            defaultValue: INIT_FREQUENCY
+            name: 'frequency',
+            defaultValue: INIT_FREQUENCY,
         }, {
-            name: "shapeParam",
+            name: 'shapeParam',
             defaultValue: INIT_SHAPE_PARAM,
             minValue: 0.3,
             maxValue: 2.7,
         }, {
-            name: "aspiration",
+            name: 'aspiration',
             defaultValue: APIRATION_PARAM,
             minValue: 0.0,
             maxValue: 1.0,
         }];
     }
 
-    process(inputs: Float32Array[][], outputs: Float32Array[][], parameters: { [name: string]: Float32Array }): boolean {
+    public process(
+        inputs: Float32Array[][],
+        outputs: Float32Array[][],
+        parameters: { [name: string]: Float32Array }): boolean {
 
-        let output: Float32Array[] = outputs[0];
+        const output: Float32Array[] = outputs[0];
 
         // resolve next render quantum (128 frames)
         for (let frame: number = 0; frame < QUANTUM_FRAMES; frame++) {
@@ -47,12 +50,12 @@ class LfModel extends AudioWorkletProcessor {
 
                 // if params have changed since last cycle, let's adjust for the next cycle
                 // (note: for some reason, only getting the param value for the first frame...)
-                let newFrequency: number = parameters.frequency[0];
+                const newFrequency: number = parameters.frequency[0];
                 if (newFrequency !== this.frequencyValue) {
                     this.frequencyValue = newFrequency;
                     this.framesPerWaveformCycle = Math.floor(SAMPLE_RATE / this.frequencyValue);
                 }
-                let newShapeParam: number = parameters.shapeParam[0];
+                const newShapeParam: number = parameters.shapeParam[0];
                 if (newShapeParam !== this.shapeParamValue) {
                     this.shapeParamValue = newShapeParam;
                     this.currentFunction = LfFunction.createWaveform(this.shapeParamValue);
@@ -60,12 +63,12 @@ class LfModel extends AudioWorkletProcessor {
             }
 
             // calculate sample and apply it to all output channels
-            let t: number = this.frameInWaveform / this.framesPerWaveformCycle;
-            let sampleFlowDerivative: number = this.currentFunction.f(t);
-            let sampleAspirationNoiseAmp: number = this.currentFunction.a(t);
-            for (let channel: number = 0; channel < output.length; channel++) {
-                let aspirationParam: number = parameters.aspiration[0];
-                output[channel][frame] =
+            const t: number = this.frameInWaveform / this.framesPerWaveformCycle;
+            const sampleFlowDerivative: number = this.currentFunction.f(t);
+            const sampleAspirationNoiseAmp: number = this.currentFunction.a(t);
+            for (const channel of output) {
+                const aspirationParam: number = parameters.aspiration[0];
+                channel[frame] =
                     sampleFlowDerivative * (1 - aspirationParam * 0.5) +
                     aspirationParam * sampleAspirationNoiseAmp * inputs[0][0][frame];
             }
@@ -78,14 +81,58 @@ class LfModel extends AudioWorkletProcessor {
     }
 }
 
+// tslint:disable-next-line: max-classes-per-file
 class LfFunction {
 
-    tp: number;
-    te: number;
-    ta: number;
-    tc: number;
-    f: (n: number) => number;
-    a: (t: number) => number;
+    public static createWaveform = (rd: number): LfFunction => {
+
+        rd = Math.max(rd, 0.3);
+        rd = Math.min(rd, 2.7);
+
+        const rap: number = (-1 + 4.8 * rd) / 100;
+        const rkp: number = (22.4 + 11.8 * rd) / 100;
+        const rgp: number = 1 / (4 * ((0.11 * rd / (0.5 + 1.2 * rkp)) - rap) / rkp);
+
+        const t0: number = 1;
+        const tp: number = t0 / (2 * rgp); // because rg = T0 / (2 * tp)
+        const te: number = rkp * tp + tp;  // because rk = (te - tp) / tp
+        const ta: number = rap / t0;
+        const tc: number = t0;
+
+        // ----------------------------------------------------
+        // adapted (~ copied) from Pink Trombone by Neil Thapen
+        const omega: number = Math.PI / tp;
+        const epsilon: number = 1 / ta;
+        const shift: number = Math.exp(-epsilon * (1 - te));
+        const delta: number = 1 - shift;
+        const rhsIntegral: number = ((1 / epsilon) * (shift - 1) + (1 - te) * shift) / delta;
+        const totalLowerIntegral: number = -(te - tp) / 2 + rhsIntegral;
+        const totalUpperIntegral: number = -totalLowerIntegral;
+        const s: number = Math.sin(omega * te);
+        const y: number = -Math.PI * s * totalUpperIntegral / (tp * 2);
+        const z: number = Math.log(y);
+        const alpha: number = z / (tp / 2 - te);
+        const e0: number = -1 / (s * Math.exp(alpha * te));
+        const f: (t: number) => number = (t) =>
+            t < te
+                ? e0 * Math.exp(alpha * t) * Math.sin(omega * t)    // the open phase
+                : (-Math.exp(-epsilon * (t - te)) + shift) / delta; // the return phase
+        // ----------------------------------------------------
+
+        const minAmp: number = 0.2;
+
+        // amplitude of aspiration noise (based on an approximation of the glottal "air flow" + constant)
+        const a: (t: number) => number = (t) => t < te ? minAmp + Math.sin(t / te * Math.PI) * (1 - minAmp) : minAmp;
+
+        return new LfFunction(tp, te, ta, tc, f, a);
+    }
+
+    public tp: number;
+    public te: number;
+    public ta: number;
+    public tc: number;
+    public f: (n: number) => number;
+    public a: (t: number) => number;
 
     private constructor(
         tp: number, te: number, ta: number, tc: number,
@@ -99,49 +146,6 @@ class LfFunction {
         this.f = f;
         this.a = a;
     }
-
-    public static createWaveform = (rd: number): LfFunction => {
-
-        rd = Math.max(rd, 0.3);
-        rd = Math.min(rd, 2.7);
-
-        let rap: number = (-1 + 4.8 * rd) / 100;
-        let rkp: number = (22.4 + 11.8 * rd) / 100;
-        let rgp: number = 1 / (4 * ((0.11 * rd / (0.5 + 1.2 * rkp)) - rap) / rkp);
-
-        let t0: number = 1;
-        let tp: number = t0 / (2 * rgp); // because rg = T0 / (2 * tp)
-        let te: number = rkp * tp + tp;  // because rk = (te - tp) / tp
-        let ta: number = rap / t0;
-        let tc: number = t0;
-
-        // ----------------------------------------------------
-        // adapted (~ copied) from Pink Trombone by Neil Thapen
-        let omega: number = Math.PI / tp;
-        let epsilon: number = 1 / ta;
-        let shift: number = Math.exp(-epsilon * (1 - te));
-        let delta: number = 1 - shift;
-        let rhsIntegral: number = ((1 / epsilon) * (shift - 1) + (1 - te) * shift) / delta;
-        let totalLowerIntegral: number = -(te - tp) / 2 + rhsIntegral;
-        let totalUpperIntegral: number = -totalLowerIntegral;
-        var s: number = Math.sin(omega * te);
-        let y: number = -Math.PI * s * totalUpperIntegral / (tp * 2);
-        let z: number = Math.log(y);
-        let alpha: number = z / (tp / 2 - te);
-        let e0: number = -1 / (s * Math.exp(alpha * te));
-        let f: (t: number) => number = (t) =>
-            t < te
-                ? e0 * Math.exp(alpha * t) * Math.sin(omega * t)    // the open phase
-                : (-Math.exp(-epsilon * (t - te)) + shift) / delta; // the return phase
-        // ----------------------------------------------------
-
-        const minAmp: number = 0.2;
-
-        // amplitude of aspiration noise (based on an approximation of the glottal "air flow" + constant)
-        let a: (t: number) => number = (t) => t < te ? minAmp + Math.sin(t / te * Math.PI) * (1 - minAmp) : minAmp;
-
-        return new LfFunction(tp, te, ta, tc, f, a);
-    }
 }
 
-registerProcessor("lf-model-processor", LfModel);
+registerProcessor('lf-model-processor', LfModel);

@@ -1,14 +1,14 @@
-import * as lfModule from "!file-loader?name=[name].js!ts-loader!./lf-model-processor.ts";
-import * as Rx from "rxjs/Rx";
+import * as lfModule from '!file-loader?name=[name].js!ts-loader!./lf-model-processor.ts';
+import * as Rx from 'rxjs/Rx';
 
-import GlottalSynthetizer from "./glottal-synthetizer";
-import InputController from "./input-controller";
-import NoteHandler from "./note-handler";
-import Panel from "../ui/panel";
-import FormantDefinitions, { Vowel } from "./formants";
-import MainAudio from "./main-audio";
-import FunctionPlotter from "../ui/function-plotter";
-import LfModelNode from "./lf-model-node";
+import GlottalSynthetizer from './glottal-synthetizer';
+import InputController from './input-controller';
+import NoteHandler from './note-handler';
+import Panel from '../ui/panel';
+import Formants, { Vowel } from './formants';
+import MainAudio from './main-audio';
+import FunctionPlotter from '../ui/function-plotter';
+import LfModelNode from './lf-model-node';
 
 export default class GlottalInput implements IDisposable {
 
@@ -51,8 +51,8 @@ export default class GlottalInput implements IDisposable {
         this.inputPanel = new Panel(
             containerId, `${this.id}-input`, `Input Signal`,
             [{
-                id: "in",
-                name: "Signal In",
+                id: 'in',
+                name: 'Signal In',
                 minValue: 0,
                 maxValue: 100,
                 initValue: 0
@@ -63,60 +63,60 @@ export default class GlottalInput implements IDisposable {
         this.glottalPanel = new Panel(
             containerId, `${this.id}-sound`, `Vowel Synthesis`,
             [{
-                id: "rd",
-                name: "Shape (Rd)",
+                id: 'rd',
+                name: 'Shape (Rd)',
                 minValue: 0,
                 maxValue: 100,
                 initValue: 50
             }, {
-                id: "aspi",
-                name: "Apiration",
+                id: 'aspi',
+                name: 'Apiration',
                 minValue: 0,
                 maxValue: 100,
                 initValue: 0
             }, {
-                id: "freq",
-                name: "Frequency",
+                id: 'freq',
+                name: 'Frequency',
                 minValue: 30,
                 maxValue: 450,
                 initValue: 120
             }, {
-                id: "vowel",
-                name: "Vowel",
+                id: 'vowel',
+                name: 'Vowel',
                 minValue: 0,
-                maxValue: FormantDefinitions.all.length - 1,
+                maxValue: Formants.all.length - 1,
                 initValue: 20,
-                displayValue: (v) => FormantDefinitions.all[Math.floor(v)].name
+                displayValue: (v) => Formants.all[Math.floor(v)].name
             }],
             this.inputController);
 
         // plot the LF-model waveform
         let lf: LfFunction = LfModelNode.waveformFunction(1);
-        let labels: string[] = ["Ts", "Tp", "Te", "Tc"];
-        this.plot = new FunctionPlotter("main-controls-container", "plotter",
-            "LF-Model waveform", lf.f, labels, [0, lf.tp, lf.te, lf.tc]);
+        let labels: string[] = ['Ts', 'Tp', 'Te', 'Tc'];
+        this.plot = new FunctionPlotter('main-controls-container', 'plotter',
+            'LF-Model waveform', lf.f, labels, [0, lf.tp, lf.te, lf.tc]);
 
         // create vibrato panel
         this.vibratoPanel = new Panel(
             containerId, `${this.id}-vibrato`, `Vibrato`,
             [{
-                id: "vib-amt",
-                name: "Amount",
+                id: 'vib-amt',
+                name: 'Amount',
                 minValue: 0,
                 maxValue: 100,
-                initValue: 50
+                initValue: 50,
             }, {
-                id: "vib-freq",
-                name: "Frequency",
+                id: 'vib-freq',
+                name: 'Frequency',
                 minValue: 0,
                 maxValue: 100,
-                initValue: 50
+                initValue: 50,
             }, {
-                id: "vib-depth",
-                name: "Depth",
+                id: 'vib-depth',
+                name: 'Depth',
                 minValue: 0,
                 maxValue: 100,
-                initValue: 10
+                initValue: 10,
             }],
             this.inputController);
 
@@ -124,29 +124,29 @@ export default class GlottalInput implements IDisposable {
         this.envelopePanel = new Panel(
             containerId, `${this.id}-envelope`, `Envelope`,
             [{
-                id: "env-attack",
-                name: "Env Attack",
+                id: 'env-attack',
+                name: 'Env Attack',
                 minValue: 0,
                 maxValue: 100,
-                initValue: 20
+                initValue: 20,
             }, {
-                id: "env-decay",
-                name: "Env Decay",
+                id: 'env-decay',
+                name: 'Env Decay',
                 minValue: 0,
                 maxValue: 100,
-                initValue: 0
+                initValue: 0,
             }, {
-                id: "env-sustain",
-                name: "Env Sustain",
+                id: 'env-sustain',
+                name: 'Env Sustain',
                 minValue: 0,
                 maxValue: 100,
-                initValue: 100
+                initValue: 100,
             }, {
-                id: "env-release",
-                name: "Env Release",
+                id: 'env-release',
+                name: 'Env Release',
                 minValue: 0,
                 maxValue: 100,
-                initValue: 15
+                initValue: 15,
             }],
             this.inputController);
 
@@ -201,7 +201,7 @@ export default class GlottalInput implements IDisposable {
         this.glottalPanel.knobs[3].subscribe(vowel$);
         this.subs.push(vowel$.subscribe((value: number) => {
             if (this.soundUnit) {
-                this.soundUnit.setVowel(FormantDefinitions.all[Math.floor(value)].vowel, .4);
+                this.soundUnit.setVowel(Formants.all[Math.floor(value)].vowel, .4);
             }
         }));
 

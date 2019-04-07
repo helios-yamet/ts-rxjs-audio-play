@@ -1,5 +1,5 @@
-import * as Rx from "rxjs/Rx";
-import SoundUnit from "./sound-unit";
+import * as Rx from 'rxjs/Rx';
+import SoundUnit from './sound-unit';
 
 const DEBOUNCE_MILLIS: number = 500;
 
@@ -11,13 +11,14 @@ type SignalEvent = [number, number, number, boolean]; // first value, latest val
  */
 export default class NoteHandler {
 
-    static startNote(soundUnit: SoundUnit, signal$: Rx.Observable<number>, done: () => void): void {
+    public static startNote(soundUnit: SoundUnit, signal$: Rx.Observable<number>, done: () => void): void {
 
         soundUnit.noteOn();
         signal$
             .takeUntil(signal$.debounceTime(DEBOUNCE_MILLIS))
-            .scan<number, SignalEvent>((acc:SignalEvent, value: number, index: number) =>
-                [index === 0 ? value : acc[0], value, Rx.Scheduler.animationFrame.now(), index === 0])
+            .scan<number, SignalEvent>((acc:SignalEvent, value: number, index: number) => {
+                return [index === 0 ? value : acc[0], value, Rx.Scheduler.animationFrame.now(), index === 0];
+            })
             .pairwise()
             .subscribe(
                 (value: SignalEvent[]) => soundUnit.modulate(new ModulationEvent(value)),
@@ -31,7 +32,7 @@ export default class NoteHandler {
 
 export enum Direction { Up, Down }
 
-// todo -> improve this, document it and test it properly
+// tslint:disable-next-line: max-classes-per-file
 export class ModulationEvent {
 
     public firstEvent: boolean;
@@ -43,13 +44,13 @@ export class ModulationEvent {
     constructor(lastValues: SignalEvent[]) {
 
         this.firstEvent = lastValues[0][3];
-        let latest: SignalEvent = lastValues[lastValues.length-1];
+        const latest: SignalEvent = lastValues[lastValues.length-1];
         this.absolute = latest[1];
         this.relative = latest[0] - latest[1];
         this.direction = lastValues[0][1] <= lastValues[1][1] ? Direction.Up : Direction.Down;
 
-        let distance: number = Math.abs(lastValues[1][1] - lastValues[0][1]);
-        let time: number = lastValues[1][2] - lastValues[0][2];
+        const distance: number = Math.abs(lastValues[1][1] - lastValues[0][1]);
+        const time: number = lastValues[1][2] - lastValues[0][2];
         this.speed = time > 0 ? distance / time : 0;
     }
 }

@@ -24,62 +24,62 @@ export enum Vowel {
     U_Tenor,
     U_Countertenor,
     U_Alto,
-    U_Soprano
+    U_Soprano,
 }
 
 export interface IFormantDefinition {
     name: string;
     vowel: Vowel;
-    formants: [number, number, number][];
+    formants: Array<[number, number, number]>;
 }
 
 /**
- * Formant table converted from
- * https://www.classes.cs.uchicago.edu/archive/1999/spring/CS295/Computing_Resources/Csound/CsManual3.48b1.HTML/Appendices/table3.html
+ * Formant table converted from "HTML Csound Manual - © Jean Piché & Peter J. Nix, 1994-97"
+ * >> http://tinyurl.com/mklt5p5
  */
-export default class FormantDefinitions {
+export default class Formants {
 
     public static all: IFormantDefinition[] = [
-        { name: "A Bass", vowel: Vowel.A_Bass, formants: FormantDefinitions.formantsFor(Vowel.A_Bass) },
-        { name: "A Tenor", vowel: Vowel.A_Tenor, formants: FormantDefinitions.formantsFor(Vowel.A_Tenor) },
-        { name: "A C-tenor", vowel: Vowel.A_Countertenor, formants: FormantDefinitions.formantsFor(Vowel.A_Countertenor) },
-        { name: "A Alto", vowel: Vowel.A_Alto, formants: FormantDefinitions.formantsFor(Vowel.A_Alto) },
-        { name: "A Soprano", vowel: Vowel.A_Soprano, formants: FormantDefinitions.formantsFor(Vowel.A_Soprano) },
-        { name: "E Bass", vowel: Vowel.E_Bass, formants: FormantDefinitions.formantsFor(Vowel.E_Bass) },
-        { name: "E Tenor", vowel: Vowel.E_Tenor, formants: FormantDefinitions.formantsFor(Vowel.E_Tenor) },
-        { name: "E C-tenor", vowel: Vowel.E_Countertenor, formants: FormantDefinitions.formantsFor(Vowel.E_Countertenor) },
-        { name: "E Alto", vowel: Vowel.E_Alto, formants: FormantDefinitions.formantsFor(Vowel.E_Alto) },
-        { name: "E Soprano", vowel: Vowel.E_Soprano, formants: FormantDefinitions.formantsFor(Vowel.E_Soprano) },
-        { name: "I Bass", vowel: Vowel.I_Bass, formants: FormantDefinitions.formantsFor(Vowel.I_Bass) },
-        { name: "I Tenor", vowel: Vowel.I_Tenor, formants: FormantDefinitions.formantsFor(Vowel.I_Tenor) },
-        { name: "I C-tenor", vowel: Vowel.I_Countertenor, formants: FormantDefinitions.formantsFor(Vowel.I_Countertenor) },
-        { name: "I Alto", vowel: Vowel.I_Alto, formants: FormantDefinitions.formantsFor(Vowel.I_Alto) },
-        { name: "I Soprano", vowel: Vowel.I_Soprano, formants: FormantDefinitions.formantsFor(Vowel.I_Soprano) },
-        { name: "O Bass", vowel: Vowel.O_Bass, formants: FormantDefinitions.formantsFor(Vowel.O_Bass) },
-        { name: "O Tenor", vowel: Vowel.O_Tenor, formants: FormantDefinitions.formantsFor(Vowel.O_Tenor) },
-        { name: "O C-tenor", vowel: Vowel.O_Countertenor, formants: FormantDefinitions.formantsFor(Vowel.O_Countertenor) },
-        { name: "O Alto", vowel: Vowel.O_Alto, formants: FormantDefinitions.formantsFor(Vowel.O_Alto) },
-        { name: "O Soprano", vowel: Vowel.O_Soprano, formants: FormantDefinitions.formantsFor(Vowel.O_Soprano) },
-        { name: "U Bass", vowel: Vowel.U_Bass, formants: FormantDefinitions.formantsFor(Vowel.U_Bass) },
-        { name: "U Tenor", vowel: Vowel.U_Tenor, formants: FormantDefinitions.formantsFor(Vowel.U_Tenor) },
-        { name: "U C-tenor", vowel: Vowel.U_Countertenor, formants: FormantDefinitions.formantsFor(Vowel.U_Countertenor) },
-        { name: "U Alto", vowel: Vowel.U_Alto, formants: FormantDefinitions.formantsFor(Vowel.U_Alto) },
-        { name: "U Soprano", vowel: Vowel.U_Soprano, formants: FormantDefinitions.formantsFor(Vowel.U_Soprano) }];
+        { name: 'A Bass', vowel: Vowel.A_Bass, formants: Formants.formantsFor(Vowel.A_Bass) },
+        { name: 'A Tenor', vowel: Vowel.A_Tenor, formants: Formants.formantsFor(Vowel.A_Tenor) },
+        { name: 'A C-tenor', vowel: Vowel.A_Countertenor, formants: Formants.formantsFor(Vowel.A_Countertenor) },
+        { name: 'A Alto', vowel: Vowel.A_Alto, formants: Formants.formantsFor(Vowel.A_Alto) },
+        { name: 'A Soprano', vowel: Vowel.A_Soprano, formants: Formants.formantsFor(Vowel.A_Soprano) },
+        { name: 'E Bass', vowel: Vowel.E_Bass, formants: Formants.formantsFor(Vowel.E_Bass) },
+        { name: 'E Tenor', vowel: Vowel.E_Tenor, formants: Formants.formantsFor(Vowel.E_Tenor) },
+        { name: 'E C-tenor', vowel: Vowel.E_Countertenor, formants: Formants.formantsFor(Vowel.E_Countertenor) },
+        { name: 'E Alto', vowel: Vowel.E_Alto, formants: Formants.formantsFor(Vowel.E_Alto) },
+        { name: 'E Soprano', vowel: Vowel.E_Soprano, formants: Formants.formantsFor(Vowel.E_Soprano) },
+        { name: 'I Bass', vowel: Vowel.I_Bass, formants: Formants.formantsFor(Vowel.I_Bass) },
+        { name: 'I Tenor', vowel: Vowel.I_Tenor, formants: Formants.formantsFor(Vowel.I_Tenor) },
+        { name: 'I C-tenor', vowel: Vowel.I_Countertenor, formants: Formants.formantsFor(Vowel.I_Countertenor) },
+        { name: 'I Alto', vowel: Vowel.I_Alto, formants: Formants.formantsFor(Vowel.I_Alto) },
+        { name: 'I Soprano', vowel: Vowel.I_Soprano, formants: Formants.formantsFor(Vowel.I_Soprano) },
+        { name: 'O Bass', vowel: Vowel.O_Bass, formants: Formants.formantsFor(Vowel.O_Bass) },
+        { name: 'O Tenor', vowel: Vowel.O_Tenor, formants: Formants.formantsFor(Vowel.O_Tenor) },
+        { name: 'O C-tenor', vowel: Vowel.O_Countertenor, formants: Formants.formantsFor(Vowel.O_Countertenor) },
+        { name: 'O Alto', vowel: Vowel.O_Alto, formants: Formants.formantsFor(Vowel.O_Alto) },
+        { name: 'O Soprano', vowel: Vowel.O_Soprano, formants: Formants.formantsFor(Vowel.O_Soprano) },
+        { name: 'U Bass', vowel: Vowel.U_Bass, formants: Formants.formantsFor(Vowel.U_Bass) },
+        { name: 'U Tenor', vowel: Vowel.U_Tenor, formants: Formants.formantsFor(Vowel.U_Tenor) },
+        { name: 'U C-tenor', vowel: Vowel.U_Countertenor, formants: Formants.formantsFor(Vowel.U_Countertenor) },
+        { name: 'U Alto', vowel: Vowel.U_Alto, formants: Formants.formantsFor(Vowel.U_Alto) },
+        { name: 'U Soprano', vowel: Vowel.U_Soprano, formants: Formants.formantsFor(Vowel.U_Soprano) }];
 
     /**
      * Return formants as tuples of frequency/amplitude/bandwidth
      * @param type the type of formant to return
      */
-    public static formantsFor(type: Vowel, nb?: number): [number, number, number][] {
+    public static formantsFor(type: Vowel, nb?: number): Array<[number, number, number]> {
 
-        let formants: [number, number, number][] = this.buildFormantsFor(type);
+        let formants: Array<[number, number, number]> = this.buildFormantsFor(type);
         if(nb) {
             formants.splice(nb);
         }
         return formants;
     }
 
-    private static buildFormantsFor(type: Vowel): [number, number, number][] {
+    private static buildFormantsFor(type: Vowel): Array<[number, number, number]> {
 
         switch (type) {
 
@@ -284,7 +284,7 @@ export default class FormantDefinitions {
                     [4950, -60, 200]
                 ];
             default:
-                throw `Formant type '${type}' is not supported`;
+                throw new Error(`Formant type '${type}' is not supported`);
         }
     }
 }

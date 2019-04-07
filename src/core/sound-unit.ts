@@ -1,4 +1,4 @@
-import { ModulationEvent } from "./note-handler";
+import { ModulationEvent } from './note-handler';
 
 /**
  * A simple abtraction for something which can play some sound and

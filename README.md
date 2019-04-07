@@ -1,6 +1,6 @@
 # ts-rxjs-audio-playground
 
-Some experiments using Typescript, Webpack RXjs and the Web Audio API.
+Some experiments using Typescript, Vue, RXjs and the Web Audio API.
 
 # License
 

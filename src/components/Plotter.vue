@@ -1,3 +1,25 @@
+<template>
+<div :id="id" class="plot" :title="id">
+    <div class="plot-label">
+        <span>{{ label}}</span>
+    </div>
+</div>
+</template>
+
+<script lang="ts">
+import { Component, Prop, Vue } from 'vue-property-decorator';
+
+@Component
+export default class Plotter extends Vue {
+  @Prop()
+  private id!: string;
+
+  @Prop()
+  private label!: string;
+}
+</script>
+
+<style>
 .plot {
 
     /* positioning */
@@ -42,3 +64,5 @@
     stroke: #3F3F3F;
     stroke-width: 2px;
 }
+</style>
+

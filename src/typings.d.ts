@@ -15,11 +15,6 @@ declare module '!file-loader*' {
 
 declare module 'tone';
 
-declare module '*.vue' {
-  import Vue from 'vue';
-  export default Vue;
-}
-
 declare interface IDisposable {
   dispose(): void;
 }

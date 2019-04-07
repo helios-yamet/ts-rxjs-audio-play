@@ -1,9 +1,9 @@
-import * as Tone from "tone";
-import FormantDefinitions, { Vowel } from "./formants";
-import LfModelNode from "./lf-model-node";
-import MainAudio from "./main-audio";
-import { ModulationEvent } from "./note-handler";
-import SoundUnit from "./sound-unit";
+import * as Tone from 'tone';
+import Formants, { Vowel } from './formants';
+import LfModelNode from './lf-model-node';
+import MainAudio from './main-audio';
+import { ModulationEvent } from './note-handler';
+import SoundUnit from './sound-unit';
 
 interface IFormantFilter {
     filter: any;
@@ -24,7 +24,7 @@ export default class GlottalSynthesizer extends SoundUnit {
 
         super();
 
-        console.log("Creating a glottal synth");
+        console.log('Creating a glottal synth');
 
         // build an audio graph starting from native Web Audio
         this.mainAudio = mainAudio;
@@ -33,7 +33,7 @@ export default class GlottalSynthesizer extends SoundUnit {
         this.lfModel.port.onmessage = (msg) => console.log(`Message from sound processor: ${msg.data}`);
         this.lfModel.getFrequency().setValueAtTime(frequency, mainAudio.audioContext.currentTime);
 
-        let aspirationNoise: AudioNode = this.createAspirationNoiseNode();
+        const aspirationNoise: AudioNode = this.createAspirationNoiseNode();
         aspirationNoise.connect(this.lfModel); // then connects to sourceSwitch
 
         // continue the audio graph on Tone.js (works, somehow)
@@ -43,71 +43,47 @@ export default class GlottalSynthesizer extends SoundUnit {
             maxDelay: 0.005,
             frequency: 5,
             depth: .1,
-            type: "sine",
-            wet: 1
+            type: 'sine',
+            wet: 1,
         });
 
         // setup formant filters
         this.formantFilters = [];
         for (let i: number = 0; i < NB_FORMANTS; i++) {
 
-            let filter: any = new Tone.Filter({
-                type: "bandpass",
+            const filter: any = new Tone.Filter({
+                type: 'bandpass',
                 frequency: 0,
                 rolloff: -12,
-                Q: 0
+                Q: 0,
             });
 
-            let volume: any = new Tone.Volume(0);
+            const volume: any = new Tone.Volume(0);
             this.lfModel.connect(filter);
             filter.chain(volume, this.vibrato);
 
             this.formantFilters.push({
-                filter: filter,
-                volume: volume
+                filter,
+                volume,
             });
         }
         this.setVowel(vowel);
 
         // link it all together
-        let gainNode: any = new Tone.Gain();
+        const gainNode: any = new Tone.Gain();
         this.envelope = new Tone.Envelope({
             attack: .2,
             decay: 0,
             sustain: 1,
             release: .3,
-            attackCurve : "exponential",
-            releaseCurve  : "linear"
+            attackCurve : 'exponential',
+            releaseCurve  : 'linear'
         });
         this.envelope.connect(gainNode.gain);
 
-        let comp: any = new Tone.Compressor(-30, 20);
+        const comp: any = new Tone.Compressor(-30, 20);
         this.vibrato.chain(comp, gainNode);
         this.mainAudio.toMaster(gainNode);
-    }
-
-    private createAspirationNoiseNode(this: GlottalSynthesizer): AudioNode {
-
-        const BUFFER_SIZE: number = this.mainAudio.audioContext.sampleRate * 4;
-        let buffer: AudioBuffer = this.mainAudio.audioContext.createBuffer(1, BUFFER_SIZE, this.mainAudio.audioContext.sampleRate);
-        let bufferData: Float32Array = buffer.getChannelData(0);
-        for (let i: number = 0; i < BUFFER_SIZE; i++) {
-            bufferData[i] = Math.random();
-        }
-
-        let whiteNoise: AudioBufferSourceNode = this.mainAudio.audioContext.createBufferSource();
-        whiteNoise.buffer = buffer;
-        whiteNoise.loop = true;
-
-        let aspirationFilter: BiquadFilterNode = this.mainAudio.audioContext.createBiquadFilter();
-        aspirationFilter.type = "lowpass";
-        aspirationFilter.frequency.value = 1800;
-        aspirationFilter.Q.value = 0;
-
-        whiteNoise.connect(aspirationFilter);
-        whiteNoise.start();
-
-        return aspirationFilter;
     }
 
     public noteOn(this: GlottalSynthesizer): void {
@@ -177,12 +153,12 @@ export default class GlottalSynthesizer extends SoundUnit {
 
         let i: number = 0;
         const magicFactor: number = 1.2;
-        FormantDefinitions.formantsFor(vowel, NB_FORMANTS).forEach((f) => {
+        Formants.formantsFor(vowel, NB_FORMANTS).forEach((f) => {
 
-            let freq: number = f[0];
-            let amp: number = f[1]; // ignoring this, in favor of magic factor hack
-            let width: number = f[2];
-            let filter: IFormantFilter = this.formantFilters[i];
+            const freq: number = f[0];
+            const amp: number = f[1]; // ignoring this, in favor of magic factor hack
+            const width: number = f[2];
+            const filter: IFormantFilter = this.formantFilters[i];
 
             if (rampTime) {
                 filter.filter.frequency.exponentialRampTo(freq, rampTime);
@@ -197,7 +173,33 @@ export default class GlottalSynthesizer extends SoundUnit {
         });
     }
 
-    dispose(): void {
+    public dispose(): void {
         // do some house-keeping here
+    }
+
+    private createAspirationNoiseNode(this: GlottalSynthesizer): AudioNode {
+
+        const BUFFER_SIZE: number = this.mainAudio.audioContext.sampleRate * 4;
+        const buffer: AudioBuffer = this.mainAudio.audioContext.createBuffer(
+            1, BUFFER_SIZE, this.mainAudio.audioContext.sampleRate);
+
+        const bufferData: Float32Array = buffer.getChannelData(0);
+        for (let i: number = 0; i < BUFFER_SIZE; i++) {
+            bufferData[i] = Math.random();
+        }
+
+        const whiteNoise: AudioBufferSourceNode = this.mainAudio.audioContext.createBufferSource();
+        whiteNoise.buffer = buffer;
+        whiteNoise.loop = true;
+
+        const aspirationFilter: BiquadFilterNode = this.mainAudio.audioContext.createBiquadFilter();
+        aspirationFilter.type = 'lowpass';
+        aspirationFilter.frequency.value = 1800;
+        aspirationFilter.Q.value = 0;
+
+        whiteNoise.connect(aspirationFilter);
+        whiteNoise.start();
+
+        return aspirationFilter;
     }
 }

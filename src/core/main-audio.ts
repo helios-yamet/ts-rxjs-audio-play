@@ -1,4 +1,4 @@
-import * as Tone from "tone";
+import * as Tone from 'tone';
 
 export default class MainAudio {
 
@@ -17,6 +17,6 @@ export default class MainAudio {
     }
 
     public getFrequencies(): Float32Array {
-        return this.fft? this.fft.getValue() : new Float32Array(0);
+        return this.fft ? this.fft.getValue() : new Float32Array(0);
     }
 }

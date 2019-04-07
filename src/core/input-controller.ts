@@ -1,6 +1,6 @@
-import * as Rx from "rxjs/Rx";
-import Knob from "../ui/knob";
-import SoundUnit from "./sound-unit";
+import * as Rx from 'rxjs/Rx';
+import Knob from '../ui/knob';
+import SoundUnit from './sound-unit';
 
 const MIDI_CONTROL_CHANGE: number = 176;
 const MIDI_NOTE_ON_EVENT: number = 144;
@@ -35,7 +35,7 @@ export default class InputController implements IDisposable {
         this.setupKeyboardArrows();
     }
 
-    registerKnob = (knob: Knob) => {
+    public registerKnob = (knob: Knob) => {
         this.knobs.push(knob);
         if (!this.activeKnob) {
             this.selectKnob(knob);
@@ -44,11 +44,11 @@ export default class InputController implements IDisposable {
         console.log(`registered knob ${knob.id}`);
     }
 
-    setSoundUnit = (soundUnit: SoundUnit) => {
+    public setSoundUnit = (soundUnit: SoundUnit) => {
         this.soundUnit = soundUnit;
     }
 
-    selectKnob = (knob: Knob) => {
+    public selectKnob = (knob: Knob) => {
 
         if (this.activeKnob) {
             this.activeKnob.markSelection(false);
@@ -64,6 +64,10 @@ export default class InputController implements IDisposable {
         knob.markSelection(true);
     }
 
+    public dispose(): void {
+        this.subscriptions.forEach(s => s.unsubscribe());
+    }
+
     private selectKnobByIndex = (i: number) => {
 
         if (this.activeKnob) {
@@ -75,26 +79,23 @@ export default class InputController implements IDisposable {
         this.activeKnob.markSelection(true);
     }
 
-    dispose(): void {
-        this.subscriptions.forEach(s => s.unsubscribe());
-    }
-
     /**
      * Connect to a MIDI controller (just pick the first found)
      */
     private connectMidiController = function (this: InputController): void {
 
-        let midiInputs$: Rx.Observable<WebMidi.MIDIMessageEvent> = Rx.Observable.fromPromise(navigator.requestMIDIAccess())
+        const midiInputs$: Rx.Observable<WebMidi.MIDIMessageEvent> = Rx.Observable
+            .fromPromise(navigator.requestMIDIAccess())
             .flatMap((access: WebMidi.MIDIAccess) => {
 
                 if (access.inputs.size === 0) {
-                    throw "No MIDI input detected.";
+                    throw 'No MIDI input detected.';
                 }
 
-                let input: WebMidi.MIDIInput = access.inputs.values().next().value!;
+                const input: WebMidi.MIDIInput = access.inputs.values().next().value!;
                 console.log(`Listening to input '${input.name}'...`);
 
-                return Rx.Observable.fromEvent(input, "midimessage").map((event) => {
+                return Rx.Observable.fromEvent(input, 'midimessage').map((event) => {
                     return event as WebMidi.MIDIMessageEvent;
                 });
             })
@@ -102,12 +103,12 @@ export default class InputController implements IDisposable {
 
         this.subscriptions.push(midiInputs$.subscribe(midiEvent => {
 
-            let eventId: number = midiEvent.data[0];
+            const eventId: number = midiEvent.data[0];
             switch (eventId) {
 
                 case MIDI_CONTROL_CHANGE:
 
-                    let id: number = midiEvent.data[1];
+                    const id: number = midiEvent.data[1];
 
                     // first knob on the controller is mapped to the selected UI knob
                     if (id === MIDI_MAPPING_FIRST_KNOB_ID) {
@@ -121,9 +122,9 @@ export default class InputController implements IDisposable {
                     if (id > MIDI_MAPPING_FIRST_KNOB_ID &&
                         id <= MIDI_MAPPING_LAST_KNOB_ID) {
 
-                        let knobId: number = midiEvent.data[1] - (MIDI_MAPPING_FIRST_KNOB_ID + 1);
+                        const knobId: number = midiEvent.data[1] - (MIDI_MAPPING_FIRST_KNOB_ID + 1);
                         if (knobId >= 0 && knobId < this.knobs.length) {
-                            let knob: Knob = this.knobs[knobId];
+                            const knob: Knob = this.knobs[knobId];
                             knob.nextByRatio(midiEvent.data[2] / 127);
                         }
                     }
@@ -153,7 +154,7 @@ export default class InputController implements IDisposable {
     private setupKeyboardSpacebar = function (this: InputController): void {
 
         const SPACEBAR: number = 32;
-        this.subscriptions.push(Rx.Observable.fromEvent<KeyboardEvent>(document, "keydown")
+        this.subscriptions.push(Rx.Observable.fromEvent<KeyboardEvent>(document, 'keydown')
             .filter(e => e.keyCode === SPACEBAR && !e.repeat)
             .subscribe(e => {
                 if (this.soundUnit) {
@@ -161,7 +162,7 @@ export default class InputController implements IDisposable {
                 }
             }, error => console.error(error)));
 
-        this.subscriptions.push(Rx.Observable.fromEvent<KeyboardEvent>(document, "keyup")
+        this.subscriptions.push(Rx.Observable.fromEvent<KeyboardEvent>(document, 'keyup')
             .filter(e => e.keyCode === SPACEBAR)
             .subscribe(e => {
                 if (this.soundUnit) {
@@ -180,11 +181,11 @@ export default class InputController implements IDisposable {
         const KEYNUM0: number = 96;
         const KEYNUM9: number = 105;
 
-        let input$: Rx.Observable<KeyboardEvent> = Rx.Observable.fromEvent<KeyboardEvent>(document, "keydown");
-        let debounceBreak$: Rx.Observable<KeyboardEvent> = input$.debounceTime(350);
-        let stream$: Rx.Observable<number> = input$
+        const input$: Rx.Observable<KeyboardEvent> = Rx.Observable.fromEvent<KeyboardEvent>(document, 'keydown');
+        const debounceBreak$: Rx.Observable<KeyboardEvent> = input$.debounceTime(350);
+        const stream$: Rx.Observable<number> = input$
             .map((event) => {
-                let code: number = event.keyCode;
+                const code: number = event.keyCode;
                 if (code >= KEYNUM0 && code <= KEYNUM9) {
                     return code - KEYNUM0;
                 } else if (code >= KEY0 && code <= KEY9) {
@@ -206,7 +207,9 @@ export default class InputController implements IDisposable {
         this.subscriptions.push(stream$.subscribe(
             state => {
                 if (this.activeKnob) {
-                    let normalizedValue: number = Math.min(this.activeKnob.maxValue, Math.max(this.activeKnob.minValue, state));
+                    const normalizedValue: number = Math.min(
+                        this.activeKnob.maxValue,
+                        Math.max(this.activeKnob.minValue, state));
                     this.activeKnob.next(normalizedValue);
                 }
             },
@@ -227,7 +230,7 @@ export default class InputController implements IDisposable {
         const arrayIndex: (i: number, length: number) => number = (x, n) => (x % n + n) % n;
 
         let speedUpRepeat: number = 1;
-        this.subscriptions.push(Rx.Observable.fromEvent<KeyboardEvent>(document, "keydown")
+        this.subscriptions.push(Rx.Observable.fromEvent<KeyboardEvent>(document, 'keydown')
             .filter(e => e.keyCode >= KEY_LEFT && e.keyCode <= KEY_DOWN)
             .subscribe(
                 e => {
@@ -240,9 +243,9 @@ export default class InputController implements IDisposable {
                         case KEY_UP:
                         case KEY_DOWN:
                             if (this.activeKnob) {
-                                let hack: number = Math.round((39 - e.keyCode) * speedUpRepeat);
-                                let newValue: number = this.activeKnob.value + hack;
-                                let normalizedValue: number = Math.min(this.activeKnob.maxValue,
+                                const hack: number = Math.round((39 - e.keyCode) * speedUpRepeat);
+                                const newValue: number = this.activeKnob.value + hack;
+                                const normalizedValue: number = Math.min(this.activeKnob.maxValue,
                                     Math.max(this.activeKnob.minValue, newValue));
                                 this.activeKnob.next(normalizedValue);
                             }
@@ -250,7 +253,7 @@ export default class InputController implements IDisposable {
 
                         case KEY_LEFT:
                         case KEY_RIGHT:
-                            let hack: number = 38 - e.keyCode;
+                            const hack: number = 38 - e.keyCode;
                             this.selectKnobByIndex(arrayIndex(this.activeKnobIndex - hack, this.knobs.length));
                             break;
                     }

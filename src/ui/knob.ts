@@ -1,6 +1,7 @@
-import "./knob.css";
+import "./knob.vue";
 
-import template from "!raw-loader!./knob.html";
+/* import Vue from "vue";
+import template from "!raw-loader!./knob.html"; */
 import * as $ from "jquery";
 import * as Rx from "rxjs/Rx";
 
@@ -42,10 +43,7 @@ export default class Knob extends Rx.BehaviorSubject<number> implements IDisposa
         this.displayValue = displayValue;
 
         // render knob
-        let renderedTemplate: string = template
-            .replace(new RegExp(TEMPLATE_KNOB_ID, "g"), id)
-            .replace(new RegExp(TEMPLATE_LABEL), label);
-        $(`#${containerId}`).append(renderedTemplate);
+        let vue: KnobVue = new KnobVue(id, label);
 
         // resolve jQuery elements
         this.$knobLabel = $(`#${this.id} .knob-label`);

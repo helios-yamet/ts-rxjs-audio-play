@@ -2,6 +2,22 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./styles.css";
 import "./index.html";
 
+import Vue from "vue";
+import App from "./index.vue";
+
+var vm: Vue = new Vue({
+    el: "#app",
+    render: (h: any) => {
+        return h(App);
+    }
+});
+
+// let currentTest: IDisposable = new Main();
+
+/* import "bootstrap/dist/css/bootstrap.min.css";
+import "./styles.css";
+import "./index.html";
+
 import * as $ from "jquery";
 import template from "!raw-loader!./ui/template.html";
 
@@ -40,4 +56,4 @@ let currentTest: IDisposable = new Main();
 $("#home").on("click", () => {
     currentTest.dispose();
     currentTest = new Main();
-});
+}); */

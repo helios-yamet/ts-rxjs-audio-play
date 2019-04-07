@@ -16,7 +16,7 @@ export default class NoteHandler {
         soundUnit.noteOn();
         signal$
             .takeUntil(signal$.debounceTime(DEBOUNCE_MILLIS))
-            .scan<number, SignalEvent>((acc:SignalEvent, value: number, index: number) => {
+            .scan<number, SignalEvent>((acc: SignalEvent, value: number, index: number) => {
                 return [index === 0 ? value : acc[0], value, Rx.Scheduler.animationFrame.now(), index === 0];
             })
             .pairwise()
@@ -44,7 +44,7 @@ export class ModulationEvent {
     constructor(lastValues: SignalEvent[]) {
 
         this.firstEvent = lastValues[0][3];
-        const latest: SignalEvent = lastValues[lastValues.length-1];
+        const latest: SignalEvent = lastValues[lastValues.length - 1];
         this.absolute = latest[1];
         this.relative = latest[0] - latest[1];
         this.direction = lastValues[0][1] <= lastValues[1][1] ? Direction.Up : Direction.Down;

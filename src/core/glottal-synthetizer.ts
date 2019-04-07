@@ -77,7 +77,7 @@ export default class GlottalSynthesizer extends SoundUnit {
             sustain: 1,
             release: .3,
             attackCurve : 'exponential',
-            releaseCurve  : 'linear'
+            releaseCurve  : 'linear',
         });
         this.envelope.connect(gainNode.gain);
 

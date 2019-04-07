@@ -4,13 +4,13 @@
  */
 
 declare module '!raw-loader*' {
-  const contents: string
-  export default contents
+  const contents: string;
+  export default contents;
 }
 
 declare module '!file-loader*' {
-  const contents: string
-  export = contents
+  const contents: string;
+  export = contents;
 }
 
 declare module 'tone';
@@ -24,8 +24,8 @@ interface AudioParamMap {
 }
 
 declare class AudioWorkletProcessor {
-  port: MessagePort;
-  process(inputs: Float32Array[][], outputs: Float32Array[][], parameters: { [name: string]: Float32Array }): boolean;
+  public port: MessagePort;
+  public process(inputs: Float32Array[][], outputs: Float32Array[][], parameters: { [name: string]: Float32Array }): boolean;
 }
 
 declare function registerProcessor(name: string, impl: any): void;

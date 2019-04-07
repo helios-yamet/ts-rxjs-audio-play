@@ -72,8 +72,8 @@ export default class Formants {
      */
     public static formantsFor(type: Vowel, nb?: number): Array<[number, number, number]> {
 
-        let formants: Array<[number, number, number]> = this.buildFormantsFor(type);
-        if(nb) {
+        const formants: Array<[number, number, number]> = this.buildFormantsFor(type);
+        if (nb) {
             formants.splice(nb);
         }
         return formants;
@@ -89,7 +89,7 @@ export default class Formants {
                     [1040, -7, 70],
                     [2250, -9, 110],
                     [2450, -9, 120],
-                    [2750, -20, 130]
+                    [2750, -20, 130],
                 ];
             case Vowel.A_Tenor:
                 return [
@@ -97,7 +97,7 @@ export default class Formants {
                     [1080, -6, 90],
                     [2650, -7, 120],
                     [2900, -8, 130],
-                    [3250, -22, 140]
+                    [3250, -22, 140],
                 ];
             case Vowel.A_Countertenor:
                 return [
@@ -105,7 +105,7 @@ export default class Formants {
                     [1120, -6, 90],
                     [2750, -23, 120],
                     [3000, -24, 130],
-                    [3350, -38, 140]
+                    [3350, -38, 140],
                 ];
             case Vowel.A_Alto:
                 return [
@@ -113,7 +113,7 @@ export default class Formants {
                     [1150, -4, 90],
                     [2800, -20, 120],
                     [3500, -36, 130],
-                    [4950, -60, 140]
+                    [4950, -60, 140],
                 ];
             case Vowel.A_Soprano:
                 return [
@@ -121,7 +121,7 @@ export default class Formants {
                     [1150, -6, 90],
                     [2900, -32, 120],
                     [3900, -20, 130],
-                    [4950, -50, 140]
+                    [4950, -50, 140],
                 ];
             case Vowel.E_Bass:
                 return [
@@ -129,7 +129,7 @@ export default class Formants {
                     [1620, -12, 80],
                     [2400, -9, 100],
                     [2800, -12, 120],
-                    [3100, -18, 120]
+                    [3100, -18, 120],
                 ];
             case Vowel.E_Tenor:
                 return [
@@ -137,7 +137,7 @@ export default class Formants {
                     [1700, -14, 80],
                     [2600, -12, 100],
                     [3200, -14, 120],
-                    [3580, -20, 120]
+                    [3580, -20, 120],
                 ];
             case Vowel.E_Countertenor:
                 return [
@@ -145,7 +145,7 @@ export default class Formants {
                     [1800, -14, 80],
                     [2700, -18, 100],
                     [3000, -20, 120],
-                    [3300, -20, 120]
+                    [3300, -20, 120],
                 ];
             case Vowel.E_Alto:
                 return [
@@ -153,7 +153,7 @@ export default class Formants {
                     [1600, -24, 80],
                     [2700, -30, 120],
                     [3300, -35, 150],
-                    [4950, -60, 200]
+                    [4950, -60, 200],
                 ];
             case Vowel.E_Soprano:
                 return [
@@ -161,7 +161,7 @@ export default class Formants {
                     [2000, -20, 100],
                     [2800, -15, 120],
                     [3600, -40, 150],
-                    [4950, -56, 200]
+                    [4950, -56, 200],
                 ];
             case Vowel.I_Bass:
                 return [
@@ -169,7 +169,7 @@ export default class Formants {
                     [1750, -30, 90],
                     [2600, -16, 100],
                     [3050, -22, 120],
-                    [3340, -28, 120]
+                    [3340, -28, 120],
                 ];
             case Vowel.I_Tenor:
                 return [
@@ -177,7 +177,7 @@ export default class Formants {
                     [1870, -15, 90],
                     [2800, -18, 100],
                     [3250, -20, 120],
-                    [3540, -30, 120]
+                    [3540, -30, 120],
                 ];
             case Vowel.I_Countertenor:
                 return [
@@ -185,7 +185,7 @@ export default class Formants {
                     [1850, -24, 90],
                     [2900, -24, 100],
                     [3350, -36, 120],
-                    [3590, -36, 120]
+                    [3590, -36, 120],
                 ];
             case Vowel.I_Alto:
                 return [
@@ -193,7 +193,7 @@ export default class Formants {
                     [1700, -20, 100],
                     [2700, -30, 120],
                     [3700, -36, 150],
-                    [4950, -60, 200]
+                    [4950, -60, 200],
                 ];
             case Vowel.I_Soprano:
                 return [
@@ -201,7 +201,7 @@ export default class Formants {
                     [2140, -12, 90],
                     [2950, -26, 100],
                     [3900, -26, 120],
-                    [4950, -44, 120]
+                    [4950, -44, 120],
                 ];
             case Vowel.O_Bass:
                 return [
@@ -209,7 +209,7 @@ export default class Formants {
                     [750, -11, 80],
                     [2400, -21, 100],
                     [2600, -20, 120],
-                    [2900, -40, 120]
+                    [2900, -40, 120],
                 ];
             case Vowel.O_Tenor:
                 return [
@@ -217,7 +217,7 @@ export default class Formants {
                     [800, -10, 80],
                     [2600, -12, 100],
                     [2800, -12, 120],
-                    [3000, -26, 120]
+                    [3000, -26, 120],
                 ];
             case Vowel.O_Countertenor:
                 return [
@@ -225,7 +225,7 @@ export default class Formants {
                     [820, -10, 80],
                     [2700, -26, 100],
                     [3000, -22, 120],
-                    [3300, -34, 120]
+                    [3300, -34, 120],
                 ];
             case Vowel.O_Alto:
                 return [
@@ -233,7 +233,7 @@ export default class Formants {
                     [800, -9, 80],
                     [2830, -16, 100],
                     [3500, -28, 130],
-                    [4950, -55, 135]
+                    [4950, -55, 135],
                 ];
             case Vowel.O_Soprano:
                 return [
@@ -241,7 +241,7 @@ export default class Formants {
                     [800, -11, 80],
                     [2830, -22, 100],
                     [3800, -22, 130],
-                    [4950, -50, 135]
+                    [4950, -50, 135],
                 ];
             case Vowel.U_Bass:
                 return [
@@ -249,7 +249,7 @@ export default class Formants {
                     [600, -20, 80],
                     [2400, -32, 100],
                     [2675, -28, 120],
-                    [2950, -36, 120]
+                    [2950, -36, 120],
                 ];
             case Vowel.U_Tenor:
                 return [
@@ -257,7 +257,7 @@ export default class Formants {
                     [600, -20, 60],
                     [2700, -17, 100],
                     [2900, -14, 120],
-                    [3300, -26, 120]
+                    [3300, -26, 120],
                 ];
             case Vowel.U_Countertenor:
                 return [
@@ -265,7 +265,7 @@ export default class Formants {
                     [630, -20, 60],
                     [2750, -23, 100],
                     [3000, -30, 120],
-                    [3400, -34, 120]
+                    [3400, -34, 120],
                 ];
             case Vowel.U_Alto:
                 return [
@@ -273,7 +273,7 @@ export default class Formants {
                     [700, -12, 60],
                     [2530, -30, 170],
                     [3500, -40, 180],
-                    [4950, -64, 200]
+                    [4950, -64, 200],
                 ];
             case Vowel.U_Soprano:
                 return [
@@ -281,7 +281,7 @@ export default class Formants {
                     [700, -16, 60],
                     [2700, -35, 170],
                     [3800, -40, 180],
-                    [4950, -60, 200]
+                    [4950, -60, 200],
                 ];
             default:
                 throw new Error(`Formant type '${type}' is not supported`);

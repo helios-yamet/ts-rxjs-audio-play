@@ -18,11 +18,11 @@ import * as Rx from "rxjs/Rx";
 
 @Component
 export default class Knob extends Vue {
-  @Prop(String) readonly id!: string;
-  @Prop(String) readonly label!: string;
-  @Prop(Number) readonly minValue!: number;
-  @Prop(Number) readonly maxValue!: number;
-  @Prop(Number) readonly initialValue!: number;
+  @Prop(String) private id!: string;
+  @Prop(String) private label!: string;
+  @Prop(Number) private minValue!: number;
+  @Prop(Number) private maxValue!: number;
+  @Prop(Number) private initialValue!: number;
   //@Prop(Function) readonly displayValue!: (value: number) => string;
   //@Prop(Function) readonly selectionCallback!: (knob: Knob) => void;
 
@@ -133,7 +133,7 @@ export default class Knob extends Vue {
   ): Rx.Subscription {
     return Rx.Observable.fromEvent(this.$knobLabel.get(0), "click").subscribe(
       () => {
-        selectionCallback(this);
+        selectionCallback(this); // TODO convert to vue event emit
       }
     );
   };

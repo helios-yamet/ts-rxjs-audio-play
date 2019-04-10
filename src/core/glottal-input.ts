@@ -5,7 +5,7 @@ import GlottalSynthetizer from './glottal-synthetizer';
 import InputController from './input-controller';
 import NoteHandler from './note-handler';
 import Panel from '../ui/panel';
-import Formants, { Vowel } from './formants';
+import Formants, { Vowel, IFormantDefinition } from './formants';
 import MainAudio from './main-audio';
 import FunctionPlotter from '../ui/function-plotter';
 import LfModelNode from './lf-model-node';
@@ -86,7 +86,7 @@ export default class GlottalInput implements IDisposable {
                 minValue: 0,
                 maxValue: Formants.all.length - 1,
                 initValue: 20,
-                displayValue: (v) => Formants.all[Math.floor(v)].name,
+                displayValue: (v: number) => Formants.all[Math.floor(v)].name,
             }],
             this.inputController);
 

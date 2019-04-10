@@ -13,12 +13,17 @@
     "jquery": "^3.3.1",
     "popper.js": "^1.15.0",
     "rxjs": "^6.4.0",
+    "rxjs-compat": "^6.4.0",
     "tone": "^13.4.9",
     "vue": "^2.6.6",
     "vue-class-component": "^6.0.0",
     "vue-property-decorator": "^8.1.0"
   },
   "devDependencies": {
+    "@types/chartist": "^0.9.44",
+    "@types/jquery": "^3.3.29",
+    "@types/webmidi": "^2.0.3",
+    "@types/webpack": "^4.4.27",
     "@vue/cli-plugin-typescript": "^3.5.0",
     "@vue/cli-service": "^3.5.0",
     "lint-staged": "^8.1.0",

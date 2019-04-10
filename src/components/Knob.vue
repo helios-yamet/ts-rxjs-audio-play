@@ -12,15 +12,160 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from 'vue-property-decorator';
+import { Component, Prop, Vue } from "vue-property-decorator";
+import $ from "jquery";
+import * as Rx from "rxjs/Rx";
 
 @Component
 export default class Knob extends Vue {
-  @Prop()
-  private id!: string;
+  @Prop(String) readonly id!: string;
+  @Prop(String) readonly label!: string;
+  @Prop(Number) readonly minValue!: number;
+  @Prop(Number) readonly maxValue!: number;
+  @Prop(Number) readonly initialValue!: number;
+  //@Prop(Function) readonly displayValue!: (value: number) => string;
+  //@Prop(Function) readonly selectionCallback!: (knob: Knob) => void;
 
-  @Prop()
-  private label!: string;
+  private subscriptions: Rx.Subscription[];
+  private $knobLabel!: JQuery<HTMLElement>;
+  private $knobDragArea!: JQuery<HTMLElement>;
+  private $knobSprites!: JQuery<HTMLElement>;
+  private $knobValue!: JQuery<HTMLElement>;
+
+  private subject: Rx.BehaviorSubject<number>;
+
+  private midiId: number | undefined;
+
+  constructor() {
+    super();
+    this.subscriptions = [];
+    this.subject = new Rx.BehaviorSubject(this.initialValue);
+  }
+
+  mounted(){
+    
+    // resolve jQuery elements
+    this.$knobLabel = $(`#${this.id} .knob-label`);
+    this.$knobDragArea = $(`#${this.id} .knob-drag-area`);
+    this.$knobSprites = $(`#${this.id} .knob-sprites`);
+    this.$knobValue = $(`#${this.id} .knob-value`);
+
+    this.subscriptions.push(this.setupDrag());
+    this.subscriptions.push(this.setupUIUpdate());
+    //this.subscriptions.push(this.setupSelector(this.selectionCallback));
+  }
+
+  beforeDestroy(){
+    this.subscriptions.forEach(s => s.unsubscribe()); // TODO check if this is necessary
+  }
+
+  /**
+   * Simple drag behavior for the knob (new value changes relative to current value).
+   */
+  private setupDrag = function(this: Knob): Rx.Subscription {
+    const MAX_DRAG_DIST: number = 100;
+
+    let mouseDown$ = Rx.Observable.fromEvent<MouseEvent>(
+      this.$knobDragArea.get(0),
+      "mousedown"
+    );
+    let mouseMove$ = Rx.Observable.fromEvent<MouseEvent>(document, "mousemove");
+    let mouseUp$ = Rx.Observable.fromEvent<MouseEvent>(document, "mouseup");
+    let mouseDrag$: Rx.Observable<number> = mouseDown$.flatMap(
+      (downEvent: MouseEvent) => {
+        downEvent.preventDefault();
+        let startY: number = downEvent.screenY;
+        let startValue: number = this.subject.value;
+
+        return mouseMove$
+          .map(moveEvent => {
+            let dist: number = startY - moveEvent.screenY;
+            let sign: number = dist < 0 ? -1 : 1;
+            let normalizedDist: number =
+              Math.min(Math.abs(dist), MAX_DRAG_DIST) * sign;
+            let distRatio: number = normalizedDist / MAX_DRAG_DIST;
+            let newValue: number =
+              startValue + distRatio * (this.maxValue - this.minValue);
+            return Math.round(
+              Math.min(this.maxValue, Math.max(this.minValue, newValue))
+            );
+          })
+          .distinctUntilChanged()
+          .takeUntil(mouseUp$);
+      }
+    );
+
+    return mouseDrag$.subscribe(
+      state => this.subject.next(state),
+      error => console.error(error)
+    );
+  };
+
+  /**
+   * Update the UI to reflect the subject value change.
+   */
+  private setupUIUpdate = function(this: Knob): Rx.Subscription {
+    const NB_FRAMES: number = 50;
+    const SPRITE_WIDTH: number = 100;
+
+    return this.subject.subscribe(
+      (state: number) => {
+        let ratio: number =
+          (state - this.minValue) / (this.maxValue - this.minValue);
+        let frame: number = Math.floor(ratio * (NB_FRAMES - 1));
+        this.$knobSprites.css(
+          "transform",
+          `translate(${-frame * SPRITE_WIDTH}px, 0px)`
+        );
+        this.$knobValue.text(state); // TODO receive this label from above
+      },
+      error => console.error(error),
+      () => console.log("Completed")
+    );
+  };
+
+  /**
+   * Setup the selection behaviour by click (report selection to caller)
+   */
+  private setupSelector = function(
+    this: Knob,
+    selectionCallback: (knob: Knob) => void
+  ): Rx.Subscription {
+    return Rx.Observable.fromEvent(this.$knobLabel.get(0), "click").subscribe(
+      () => {
+        selectionCallback(this);
+      }
+    );
+  };
+
+  /**
+   * Emit the next value for this knob, normalized according to min/max values.
+   */
+  public nextByRatio = function(this: Knob, ratio: number): void {
+    this.subject.next(
+      Math.round(this.minValue + ratio * (this.maxValue - this.minValue))
+    );
+  };
+
+  /**
+   * Report MIDI mapping (called by input controller)
+   * @param selected Selected or not
+   */
+  public notifyMidiMapping = function(this: Knob, midiId: number): void {
+    this.midiId = midiId;
+  };
+
+  /**
+   * Mark as selected (or unselected)
+   * @param selected Selected or not
+   */
+  public markSelection = function(this: Knob, selected: boolean): void {
+    if (selected) {
+      this.$knobLabel.addClass("selected");
+    } else {
+      this.$knobLabel.removeClass("selected");
+    }
+  };
 }
 </script>
 

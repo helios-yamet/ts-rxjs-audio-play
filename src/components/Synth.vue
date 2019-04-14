@@ -2,7 +2,7 @@
   <div>
     <div class="row">
       <Panel id="panel-synth" label="Vowel Synthesis">
-        <Plotter></Plotter>
+        <Plotter id="plotter" label="Waveform" :labels="['Ts', 'Tp', 'Te', 'Tc']"></Plotter>
         <Knob id="knob-shap" label="Shape (rd)" :minValue="0" :maxValue="100" :initialValue="50" v-on:select="selectKnob"></Knob>
         <Knob id="knob-freq" label="Frequency" :minValue="30" :maxValue="450" :initialValue="120"></Knob>
         <Knob id="knob-aspi" label="Aspiration" :minValue="0" :maxValue="100" :initialValue="0"></Knob>

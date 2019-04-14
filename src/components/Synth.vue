@@ -3,7 +3,7 @@
     <div class="row">
       <Panel id="panel-synth" label="Vowel Synthesis">
         <Plotter></Plotter>
-        <Knob id="knob-shap" label="Shape (rd)" :minValue="0" :maxValue="100" :initialValue="50"></Knob>
+        <Knob id="knob-shap" label="Shape (rd)" :minValue="0" :maxValue="100" :initialValue="50" v-on:select="selectKnob"></Knob>
         <Knob id="knob-freq" label="Frequency" :minValue="30" :maxValue="450" :initialValue="120"></Knob>
         <Knob id="knob-aspi" label="Aspiration" :minValue="0" :maxValue="100" :initialValue="0"></Knob>
         <Knob id="knob-vowel" label="Vowel" :minValue="0" :maxValue="24" :initialValue="20"></Knob>
@@ -26,14 +26,14 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-import Knob from "@/components/Knob.vue";
-import Panel from "@/components/Panel.vue";
-import Plotter from "@/components/Plotter.vue";
-import MainAudio from "@/core/main-audio";
+import { Component, Prop, Vue } from 'vue-property-decorator';
+import Knob from '@/components/Knob.vue';
+import Panel from '@/components/Panel.vue';
+import Plotter from '@/components/Plotter.vue';
+import MainAudio from '@/core/main-audio';
 
 @Component({
-  components: { Knob, Panel, Plotter }
+  components: { Knob, Panel, Plotter },
 })
 export default class Synth extends Vue {
   @Prop(MainAudio) private mainAudio!: MainAudio;
@@ -48,6 +48,10 @@ export default class Synth extends Vue {
   private envDecay!: number;
   private envSustain!: number;
   private envRelease!: number;
+
+  selectKnob(knob: any) {
+    console.log(`Knob selected! --> ${knob}`);
+  }
 }
 </script>
 

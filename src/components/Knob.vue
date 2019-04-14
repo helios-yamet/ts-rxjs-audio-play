@@ -1,11 +1,11 @@
 <template>
   <div v-bind:id="id" v-bind:title="id" class="knob">
     <div class="knob-drag-area"></div>
-    <div class="knob-value">0</div>
+    <div class="knob-value">{{ subject.value }}</div>
     <div class="knob-sprites-wrapper">
       <div class="knob-sprites"></div>
     </div>
-    <div class="knob-label">
+    <div class="knob-label" :class="{selected: selected}" @click="select">
       <span>{{ label }}</span>
     </div>
   </div>
@@ -23,17 +23,16 @@ export default class Knob extends Vue {
   @Prop(Number) private minValue!: number;
   @Prop(Number) private maxValue!: number;
   @Prop(Number) private initialValue!: number;
-  //@Prop(Function) readonly displayValue!: (value: number) => string;
-  //@Prop(Function) readonly selectionCallback!: (knob: Knob) => void;
+  
+  public selected: boolean = false;
+
+  // @Prop(Function) readonly displayValue!: (value: number) => string;
+  // @Prop(Function) readonly selectionCallback!: (knob: Knob) => void;
 
   private subscriptions: Rx.Subscription[];
   private $knobLabel!: JQuery<HTMLElement>;
-  private $knobDragArea!: JQuery<HTMLElement>;
-  private $knobSprites!: JQuery<HTMLElement>;
-  private $knobValue!: JQuery<HTMLElement>;
 
   private subject: Rx.BehaviorSubject<number>;
-
   private midiId: number | undefined;
 
   constructor() {
@@ -42,20 +41,29 @@ export default class Knob extends Vue {
     this.subject = new Rx.BehaviorSubject(this.initialValue);
   }
 
-  mounted(){
-    
-    // resolve jQuery elements
-    this.$knobLabel = $(`#${this.id} .knob-label`);
-    this.$knobDragArea = $(`#${this.id} .knob-drag-area`);
-    this.$knobSprites = $(`#${this.id} .knob-sprites`);
-    this.$knobValue = $(`#${this.id} .knob-value`);
-
-    this.subscriptions.push(this.setupDrag());
-    this.subscriptions.push(this.setupUIUpdate());
-    //this.subscriptions.push(this.setupSelector(this.selectionCallback));
+  private select() {
+    this.selected = !this.selected;
+    this.$emit("select", { id: this.id, selected: this.selected });
   }
 
-  beforeDestroy(){
+  /**
+   * Emit the next value for this knob, normalized according to min/max values.
+   */
+  public nextByRatio = function(this: Knob, ratio: number): void {
+    this.subject.next(
+      Math.round(this.minValue + ratio * (this.maxValue - this.minValue))
+    );
+  };
+
+  private mounted() {
+    // resolve jQuery elements
+    this.$knobLabel = $(`#${this.id} .knob-label`);
+    this.subscriptions.push(this.setupDrag());
+    this.subscriptions.push(this.setupUIUpdate());
+    // this.subscriptions.push(this.setupSelector(this.selectionCallback));
+  }
+
+  private beforeDestroy() {
     this.subscriptions.forEach(s => s.unsubscribe()); // TODO check if this is necessary
   }
 
@@ -64,34 +72,34 @@ export default class Knob extends Vue {
    */
   private setupDrag = function(this: Knob): Rx.Subscription {
     const MAX_DRAG_DIST: number = 100;
+    const $knobDragArea = $(`#${this.id} .knob-drag-area`);
 
-    let mouseDown$ = Rx.Observable.fromEvent<MouseEvent>(
-      this.$knobDragArea.get(0),
+    const mouseDown$ = Rx.Observable.fromEvent<MouseEvent>(
+      $knobDragArea.get(0),
       "mousedown"
     );
-    let mouseMove$ = Rx.Observable.fromEvent<MouseEvent>(document, "mousemove");
-    let mouseUp$ = Rx.Observable.fromEvent<MouseEvent>(document, "mouseup");
-    let mouseDrag$: Rx.Observable<number> = mouseDown$.flatMap(
+
+    const mouseDrag$: Rx.Observable<number> = mouseDown$.flatMap(
       (downEvent: MouseEvent) => {
         downEvent.preventDefault();
-        let startY: number = downEvent.screenY;
-        let startValue: number = this.subject.value;
+        const startY: number = downEvent.screenY;
+        const startValue: number = this.subject.value;
 
-        return mouseMove$
+        return Rx.Observable.fromEvent<MouseEvent>(document, "mousemove")
           .map(moveEvent => {
-            let dist: number = startY - moveEvent.screenY;
-            let sign: number = dist < 0 ? -1 : 1;
-            let normalizedDist: number =
+            const dist: number = startY - moveEvent.screenY;
+            const sign: number = dist < 0 ? -1 : 1;
+            const normalizedDist: number =
               Math.min(Math.abs(dist), MAX_DRAG_DIST) * sign;
-            let distRatio: number = normalizedDist / MAX_DRAG_DIST;
-            let newValue: number =
+            const distRatio: number = normalizedDist / MAX_DRAG_DIST;
+            const newValue: number =
               startValue + distRatio * (this.maxValue - this.minValue);
             return Math.round(
               Math.min(this.maxValue, Math.max(this.minValue, newValue))
             );
           })
           .distinctUntilChanged()
-          .takeUntil(mouseUp$);
+          .takeUntil(Rx.Observable.fromEvent<MouseEvent>(document, "mouseup"));
       }
     );
 
@@ -107,17 +115,17 @@ export default class Knob extends Vue {
   private setupUIUpdate = function(this: Knob): Rx.Subscription {
     const NB_FRAMES: number = 50;
     const SPRITE_WIDTH: number = 100;
+    const $knobSprites = $(`#${this.id} .knob-sprites`);
 
     return this.subject.subscribe(
       (state: number) => {
-        let ratio: number =
+        const ratio: number =
           (state - this.minValue) / (this.maxValue - this.minValue);
-        let frame: number = Math.floor(ratio * (NB_FRAMES - 1));
-        this.$knobSprites.css(
+        const frame: number = Math.floor(ratio * (NB_FRAMES - 1));
+        $knobSprites.css(
           "transform",
           `translate(${-frame * SPRITE_WIDTH}px, 0px)`
         );
-        this.$knobValue.text(state); // TODO receive this label from above
       },
       error => console.error(error),
       () => console.log("Completed")
@@ -136,35 +144,6 @@ export default class Knob extends Vue {
         selectionCallback(this); // TODO convert to vue event emit
       }
     );
-  };
-
-  /**
-   * Emit the next value for this knob, normalized according to min/max values.
-   */
-  public nextByRatio = function(this: Knob, ratio: number): void {
-    this.subject.next(
-      Math.round(this.minValue + ratio * (this.maxValue - this.minValue))
-    );
-  };
-
-  /**
-   * Report MIDI mapping (called by input controller)
-   * @param selected Selected or not
-   */
-  public notifyMidiMapping = function(this: Knob, midiId: number): void {
-    this.midiId = midiId;
-  };
-
-  /**
-   * Mark as selected (or unselected)
-   * @param selected Selected or not
-   */
-  public markSelection = function(this: Knob, selected: boolean): void {
-    if (selected) {
-      this.$knobLabel.addClass("selected");
-    } else {
-      this.$knobLabel.removeClass("selected");
-    }
   };
 }
 </script>

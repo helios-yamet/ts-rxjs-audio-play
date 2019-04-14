@@ -5,9 +5,9 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
-import $ from "jquery";
-import MainAudio from "../core/main-audio";
+import { Component, Prop, Vue } from 'vue-property-decorator';
+import $ from 'jquery';
+import MainAudio from '../core/main-audio';
 
 @Component
 export default class Visualizer extends Vue {
@@ -23,7 +23,7 @@ export default class Visualizer extends Vue {
     const rect: ClientRect = this.canvas.getBoundingClientRect();
     this.canvas.width = rect.width * pixelRatio;
     this.canvas.height = rect.height * pixelRatio;
-    this.context = this.canvas.getContext("2d")!;
+    this.context = this.canvas.getContext('2d')!;
     this.drawOscilloscope();
   }
 
@@ -42,18 +42,18 @@ export default class Visualizer extends Vue {
     for (let i: number = 0; i < len / FRAC; i++) {
       const x: number = this.canvas.width * (i / len) * FRAC;
 
-      this.context.fillStyle = "rgba(237, 239, 240, 1)";
+      this.context.fillStyle = 'rgba(237, 239, 240, 1)';
       this.context.fillRect(x, 0, barWidth, this.canvas.height);
 
       const y: number = -frequencies[i] * AMP - 25;
 
-      this.context.fillStyle = "#b6cfe2";
+      this.context.fillStyle = '#b6cfe2';
       this.context.fillRect(x, y, barWidth, this.canvas.height);
 
-      this.context.fillStyle = "rgb(94, 103, 111)";
+      this.context.fillStyle = 'rgb(94, 103, 111)';
       this.context.fillRect(x, y, barWidth, 3);
     }
-  };
+  }
 }
 </script>
 

@@ -1,7 +1,7 @@
 <template>
   <div v-bind:id="id" v-bind:title="id" class="knob">
     <div class="knob-drag-area"></div>
-    <div class="knob-value">{{ value }}</div>
+    <div class="knob-value">{{ internalValue }}</div>
     <div class="knob-sprites-wrapper">
       <div class="knob-sprites" :style="rotation"></div>
     </div>
@@ -22,24 +22,29 @@ export default class Knob extends Vue {
   @Prop(String) private label!: string;
   @Prop(Number) private minValue!: number;
   @Prop(Number) private maxValue!: number;
-  @Prop(Number) private initialValue!: number;
+  @Prop(Number) private value!: number;
 
   private subscriptions!: Rx.Subscription[];
 
-  public value: number = this.initialValue;
+  public internalValue: number = this.value;
   public selected: boolean = false;
 
   private get rotation() {
     const NB_FRAMES: number = 50;
     const SPRITE_WIDTH: number = 100;
     const ratio: number =
-      (this.value - this.minValue) / (this.maxValue - this.minValue);
+      (this.internalValue - this.minValue) / (this.maxValue - this.minValue);
     const frame: number = Math.floor(ratio * (NB_FRAMES - 1));
     return `transform: translate(${-frame * SPRITE_WIDTH}px, 0px)`;
   }
 
   public get valueRatio(): number {
-    return (this.value - this.minValue) / (this.maxValue - this.minValue);
+    return (this.internalValue - this.minValue) / (this.maxValue - this.minValue);
+  }
+
+  @Watch('value')
+  private onValueModified(newValue: number) {
+    this.internalValue = newValue;
   }
 
   @Emit()
@@ -60,7 +65,7 @@ export default class Knob extends Vue {
       (downEvent: MouseEvent) => {
         downEvent.preventDefault();
         const startY: number = downEvent.screenY;
-        const startValue: number = this.value;
+        const startValue: number = this.internalValue;
 
         return Rx.Observable.fromEvent<MouseEvent>(document, "mousemove")
           .map(moveEvent => {
@@ -83,7 +88,10 @@ export default class Knob extends Vue {
     this.subscriptions = [];
     this.subscriptions.push(
       mouseDrag$.subscribe(
-        state => (this.value = state),
+        state => {
+          this.internalValue = state
+          this.$emit('update:value', state);
+        },
         error => console.error(error)
       )
     );

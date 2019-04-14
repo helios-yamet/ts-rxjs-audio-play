@@ -5,83 +5,6 @@ const INIT_FREQUENCY: number = 120;
 const INIT_SHAPE_PARAM: number = 1;
 const APIRATION_PARAM: number = 0;
 
-class LfModel extends AudioWorkletProcessor {
-
-    private frequencyValue: number = INIT_FREQUENCY;
-    private shapeParamValue: number = INIT_SHAPE_PARAM;
-    private currentFunction: LfFunction = LfFunction.createWaveform(INIT_SHAPE_PARAM);
-    private framesPerWaveformCycle: number = Math.floor(SAMPLE_RATE / INIT_FREQUENCY);
-    private frameInWaveform: number = 0;
-
-    private active: boolean = true; // todo see how to manage this...
-
-    constructor() {
-        super();
-    }
-
-    static get parameterDescriptors(): ProcessorParams[] {
-        return [{
-            name: 'frequency',
-            defaultValue: INIT_FREQUENCY,
-        }, {
-            name: 'shapeParam',
-            defaultValue: INIT_SHAPE_PARAM,
-            minValue: 0.3,
-            maxValue: 2.7,
-        }, {
-            name: 'aspiration',
-            defaultValue: APIRATION_PARAM,
-            minValue: 0.0,
-            maxValue: 1.0,
-        }];
-    }
-
-    public process(
-        inputs: Float32Array[][],
-        outputs: Float32Array[][],
-        parameters: { [name: string]: Float32Array }): boolean {
-
-        const output: Float32Array[] = outputs[0];
-
-        // resolve next render quantum (128 frames)
-        for (let frame: number = 0; frame < QUANTUM_FRAMES; frame++) {
-
-            if (this.frameInWaveform === 0) {
-
-                // if params have changed since last cycle, let's adjust for the next cycle
-                // (note: for some reason, only getting the param value for the first frame...)
-                const newFrequency: number = parameters.frequency[0];
-                if (newFrequency !== this.frequencyValue) {
-                    this.frequencyValue = newFrequency;
-                    this.framesPerWaveformCycle = Math.floor(SAMPLE_RATE / this.frequencyValue);
-                }
-                const newShapeParam: number = parameters.shapeParam[0];
-                if (newShapeParam !== this.shapeParamValue) {
-                    this.shapeParamValue = newShapeParam;
-                    this.currentFunction = LfFunction.createWaveform(this.shapeParamValue);
-                }
-            }
-
-            // calculate sample and apply it to all output channels
-            const t: number = this.frameInWaveform / this.framesPerWaveformCycle;
-            const sampleFlowDerivative: number = this.currentFunction.f(t);
-            const sampleAspirationNoiseAmp: number = this.currentFunction.a(t);
-            for (const channel of output) {
-                const aspirationParam: number = parameters.aspiration[0];
-                channel[frame] =
-                    sampleFlowDerivative * (1 - aspirationParam * 0.5) +
-                    aspirationParam * sampleAspirationNoiseAmp * inputs[0][0][frame];
-            }
-
-            // move to next frame in waveform (or loop to start)
-            this.frameInWaveform = ++this.frameInWaveform < this.framesPerWaveformCycle ? this.frameInWaveform : 0;
-        }
-
-        return this.active;
-    }
-}
-
-// tslint:disable-next-line: max-classes-per-file
 class LfFunction {
 
     public static createWaveform = (rd: number): LfFunction => {
@@ -148,4 +71,80 @@ class LfFunction {
     }
 }
 
-registerProcessor('lf-model-processor', LfModel);
+class LfModel extends AudioWorkletProcessor {
+
+    private frequencyValue: number = INIT_FREQUENCY;
+    private shapeParamValue: number = INIT_SHAPE_PARAM;
+    private currentFunction: LfFunction = LfFunction.createWaveform(INIT_SHAPE_PARAM);
+    private framesPerWaveformCycle: number = Math.floor(SAMPLE_RATE / INIT_FREQUENCY);
+    private frameInWaveform: number = 0;
+
+    private active: boolean = true; // todo see how to manage this...
+
+    constructor() {
+        super();
+    }
+
+    static get parameterDescriptors(): ProcessorParams[] {
+        return [{
+            name: "frequency",
+            defaultValue: INIT_FREQUENCY,
+        }, {
+            name: "shapeParam",
+            defaultValue: INIT_SHAPE_PARAM,
+            minValue: 0.3,
+            maxValue: 2.7,
+        }, {
+            name: "aspiration",
+            defaultValue: APIRATION_PARAM,
+            minValue: 0.0,
+            maxValue: 1.0,
+        }];
+    }
+
+    public process(
+        inputs: Float32Array[][],
+        outputs: Float32Array[][],
+        parameters: { [name: string]: Float32Array }): boolean {
+
+        const output: Float32Array[] = outputs[0];
+
+        // resolve next render quantum (128 frames)
+        for (let frame: number = 0; frame < QUANTUM_FRAMES; frame++) {
+
+            if (this.frameInWaveform === 0) {
+
+                // if params have changed since last cycle, let's adjust for the next cycle
+                // (note: for some reason, only getting the param value for the first frame...)
+                const newFrequency: number = parameters.frequency[0];
+                if (newFrequency !== this.frequencyValue) {
+                    this.frequencyValue = newFrequency;
+                    this.framesPerWaveformCycle = Math.floor(SAMPLE_RATE / this.frequencyValue);
+                }
+                const newShapeParam: number = parameters.shapeParam[0];
+                if (newShapeParam !== this.shapeParamValue) {
+                    this.shapeParamValue = newShapeParam;
+                    this.currentFunction = LfFunction.createWaveform(this.shapeParamValue);
+                }
+            }
+
+            // calculate sample and apply it to all output channels
+            const t: number = this.frameInWaveform / this.framesPerWaveformCycle;
+            const sampleFlowDerivative: number = this.currentFunction.f(t);
+            const sampleAspirationNoiseAmp: number = this.currentFunction.a(t);
+            for (const channel of output) {
+                const aspirationParam: number = parameters.aspiration[0];
+                channel[frame] =
+                    sampleFlowDerivative * (1 - aspirationParam * 0.5) +
+                    aspirationParam * sampleAspirationNoiseAmp * inputs[0][0][frame];
+            }
+
+            // move to next frame in waveform (or loop to start)
+            this.frameInWaveform = ++this.frameInWaveform < this.framesPerWaveformCycle ? this.frameInWaveform : 0;
+        }
+
+        return this.active;
+    }
+}
+
+registerProcessor("lf-model-processor", LfModel);

@@ -1,25 +1,17 @@
-import * as lfModule from '!file-loader?name=[name].js!ts-loader!./lf-model-processor.ts';
-import * as Rx from 'rxjs/Rx';
+import * as lfModule from "!file-loader?name=[name].js!ts-loader!./lf-model-processor.ts";
+import * as Rx from "rxjs/Rx";
 
-import GlottalSynthetizer from './glottal-synthetizer';
-import InputController from './input-controller';
-import NoteHandler from './note-handler';
-import Panel from '../ui/panel';
-import Formants, { Vowel, IFormantDefinition } from './formants';
-import MainAudio from './main-audio';
-import FunctionPlotter from '../ui/function-plotter';
-import LfModelNode from './lf-model-node';
+import GlottalSynthetizer from "./glottal-synthetizer";
+import InputController from "./input-controller";
+import NoteHandler from "./note-handler";
+import Formants, { Vowel, IFormantDefinition } from "./formants";
+import MainAudio from "./main-audio";
+import LfModelNode from "./lf-model-node";
 
 export default class GlottalInput implements IDisposable {
 
     public id: string;
     public shapeParam$: Rx.Subject<number>;
-
-    private inputPanel: Panel;
-    private glottalPanel: Panel;
-    private plot: FunctionPlotter;
-    private vibratoPanel: Panel;
-    private envelopePanel: Panel;
     private inputController: InputController;
     private subs: Rx.Subscription[];
 
@@ -27,7 +19,6 @@ export default class GlottalInput implements IDisposable {
     private soundUnit: GlottalSynthetizer | undefined;
 
     constructor(
-        containerId: string,
         id: string,
         mainAudio: MainAudio,
         inputController: InputController) {
@@ -47,108 +38,8 @@ export default class GlottalInput implements IDisposable {
                 (error: any) => console.error(error),
             );
 
-        // create input panel
-        this.inputPanel = new Panel(
-            containerId, `${this.id}-input`, `Input Signal`,
-            [{
-                id: 'in',
-                name: 'Signal In',
-                minValue: 0,
-                maxValue: 100,
-                initValue: 0,
-            }],
-            this.inputController);
-
-        // create sound unit panel
-        this.glottalPanel = new Panel(
-            containerId, `${this.id}-sound`, `Vowel Synthesis`,
-            [{
-                id: 'rd',
-                name: 'Shape (Rd)',
-                minValue: 0,
-                maxValue: 100,
-                initValue: 50,
-            }, {
-                id: 'aspi',
-                name: 'Apiration',
-                minValue: 0,
-                maxValue: 100,
-                initValue: 0,
-            }, {
-                id: 'freq',
-                name: 'Frequency',
-                minValue: 30,
-                maxValue: 450,
-                initValue: 120,
-            }, {
-                id: 'vowel',
-                name: 'Vowel',
-                minValue: 0,
-                maxValue: Formants.all.length - 1,
-                initValue: 20,
-                displayValue: (v: number) => Formants.all[Math.floor(v)].name,
-            }],
-            this.inputController);
-
         // plot the LF-model waveform
         let lf: LfFunction = LfModelNode.waveformFunction(1);
-        const labels: string[] = ['Ts', 'Tp', 'Te', 'Tc'];
-        this.plot = new FunctionPlotter('main-controls-container', 'plotter',
-            'LF-Model waveform', lf.f, labels, [0, lf.tp, lf.te, lf.tc]);
-
-        // create vibrato panel
-        this.vibratoPanel = new Panel(
-            containerId, `${this.id}-vibrato`, `Vibrato`,
-            [{
-                id: 'vib-amt',
-                name: 'Amount',
-                minValue: 0,
-                maxValue: 100,
-                initValue: 50,
-            }, {
-                id: 'vib-freq',
-                name: 'Frequency',
-                minValue: 0,
-                maxValue: 100,
-                initValue: 50,
-            }, {
-                id: 'vib-depth',
-                name: 'Depth',
-                minValue: 0,
-                maxValue: 100,
-                initValue: 10,
-            }],
-            this.inputController);
-
-        // create envelope panel
-        this.envelopePanel = new Panel(
-            containerId, `${this.id}-envelope`, `Envelope`,
-            [{
-                id: 'env-attack',
-                name: 'Env Attack',
-                minValue: 0,
-                maxValue: 100,
-                initValue: 20,
-            }, {
-                id: 'env-decay',
-                name: 'Env Decay',
-                minValue: 0,
-                maxValue: 100,
-                initValue: 0,
-            }, {
-                id: 'env-sustain',
-                name: 'Env Sustain',
-                minValue: 0,
-                maxValue: 100,
-                initValue: 100,
-            }, {
-                id: 'env-release',
-                name: 'Env Release',
-                minValue: 0,
-                maxValue: 100,
-                initValue: 15,
-            }],
-            this.inputController);
 
         this.subs = [];
 

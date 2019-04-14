@@ -1,6 +1,5 @@
-import * as Rx from 'rxjs/Rx';
-import Knob from '../ui/knob';
-import SoundUnit from './sound-unit';
+import * as Rx from "rxjs/Rx";
+import SoundUnit from "./sound-unit";
 
 const MIDI_CONTROL_CHANGE: number = 176;
 const MIDI_NOTE_ON_EVENT: number = 144;
@@ -16,8 +15,6 @@ const MIDI_MAPPING_LAST_KNOB_ID: number = 28;
  */
 export default class InputController implements IDisposable {
 
-    private knobs: Knob[];
-    private activeKnob: Knob | undefined;
     private activeKnobIndex: number;
 
     private subscriptions: Rx.Subscription[];
@@ -25,7 +22,6 @@ export default class InputController implements IDisposable {
 
     constructor() {
 
-        this.knobs = [];
         this.activeKnobIndex = 0;
         this.subscriptions = [];
 
@@ -35,20 +31,20 @@ export default class InputController implements IDisposable {
         this.setupKeyboardArrows();
     }
 
-    public registerKnob = (knob: Knob) => {
+    /* public registerKnob = (knob: Knob) => {
         this.knobs.push(knob);
         if (!this.activeKnob) {
             this.selectKnob(knob);
         }
         knob.notifyMidiMapping(this.knobs.length + (MIDI_MAPPING_FIRST_KNOB_ID + 1));
         console.log(`registered knob ${knob.id}`);
-    }
+    } */
 
     public setSoundUnit = (soundUnit: SoundUnit) => {
         this.soundUnit = soundUnit;
     }
 
-    public selectKnob = (knob: Knob) => {
+    /* public selectKnob = (knob: Knob) => {
 
         if (this.activeKnob) {
             this.activeKnob.markSelection(false);
@@ -62,13 +58,13 @@ export default class InputController implements IDisposable {
         }
 
         knob.markSelection(true);
-    }
+    } */
 
     public dispose(): void {
         this.subscriptions.forEach((s) => s.unsubscribe());
     }
 
-    private selectKnobByIndex = (i: number) => {
+    /* private selectKnobByIndex = (i: number) => {
 
         if (this.activeKnob) {
             this.activeKnob.markSelection(false);
@@ -77,25 +73,25 @@ export default class InputController implements IDisposable {
         this.activeKnobIndex = i;
         this.activeKnob = this.knobs[i];
         this.activeKnob.markSelection(true);
-    }
+    } */
 
     /**
      * Connect to a MIDI controller (just pick the first found)
      */
-    private connectMidiController = function(this: InputController): void {
+    private connectMidiController = function (this: InputController): void {
 
         const midiInputs$: Rx.Observable<WebMidi.MIDIMessageEvent> = Rx.Observable
             .fromPromise(navigator.requestMIDIAccess())
             .flatMap((access: WebMidi.MIDIAccess) => {
 
                 if (access.inputs.size === 0) {
-                    throw new Error('No MIDI input detected.');
+                    throw new Error("No MIDI input detected.");
                 }
 
                 const input: WebMidi.MIDIInput = access.inputs.values().next().value!;
                 console.log(`Listening to input '${input.name}'...`);
 
-                return Rx.Observable.fromEvent(input, 'midimessage').map((event) => {
+                return Rx.Observable.fromEvent(input, "midimessage").map((event) => {
                     return event as WebMidi.MIDIMessageEvent;
                 });
             })
@@ -151,10 +147,10 @@ export default class InputController implements IDisposable {
         ));
     };
 
-    private setupKeyboardSpacebar = function(this: InputController): void {
+    private setupKeyboardSpacebar = function (this: InputController): void {
 
         const SPACEBAR: number = 32;
-        this.subscriptions.push(Rx.Observable.fromEvent<KeyboardEvent>(document, 'keydown')
+        this.subscriptions.push(Rx.Observable.fromEvent<KeyboardEvent>(document, "keydown")
             .filter((e) => e.keyCode === SPACEBAR && !e.repeat)
             .subscribe((e) => {
                 if (this.soundUnit) {
@@ -162,7 +158,7 @@ export default class InputController implements IDisposable {
                 }
             }, (error) => console.error(error)));
 
-        this.subscriptions.push(Rx.Observable.fromEvent<KeyboardEvent>(document, 'keyup')
+        this.subscriptions.push(Rx.Observable.fromEvent<KeyboardEvent>(document, "keyup")
             .filter((e) => e.keyCode === SPACEBAR)
             .subscribe((e) => {
                 if (this.soundUnit) {
@@ -174,14 +170,14 @@ export default class InputController implements IDisposable {
     /**
      * Control input from keyboard (will produce a value shortly after no additional number has been typed)
      */
-    private setupKeyBoardNumPad = function(this: InputController): void {
+    private setupKeyBoardNumPad = function (this: InputController): void {
 
         const KEY0: number = 48;
         const KEY9: number = 57;
         const KEYNUM0: number = 96;
         const KEYNUM9: number = 105;
 
-        const input$: Rx.Observable<KeyboardEvent> = Rx.Observable.fromEvent<KeyboardEvent>(document, 'keydown');
+        const input$: Rx.Observable<KeyboardEvent> = Rx.Observable.fromEvent<KeyboardEvent>(document, "keydown");
         const debounceBreak$: Rx.Observable<KeyboardEvent> = input$.debounceTime(350);
         const stream$: Rx.Observable<number> = input$
             .map((event) => {
@@ -204,7 +200,7 @@ export default class InputController implements IDisposable {
                 return value;
             });
 
-        this.subscriptions.push(stream$.subscribe(
+        /* this.subscriptions.push(stream$.subscribe(
             (state) => {
                 if (this.activeKnob) {
                     const normalizedValue: number = Math.min(
@@ -213,13 +209,13 @@ export default class InputController implements IDisposable {
                     this.activeKnob.next(normalizedValue);
                 }
             },
-            (error) => console.error(error)));
+            (error) => console.error(error))); */
     };
 
     /**
      * Control input from keyboard (will select next or previous knob based on registered order)
      */
-    private setupKeyboardArrows = function(this: InputController): void {
+    private setupKeyboardArrows = function (this: InputController): void {
 
         const KEY_UP: number = 38;
         const KEY_LEFT: number = 37;
@@ -230,7 +226,7 @@ export default class InputController implements IDisposable {
         const arrayIndex: (i: number, length: number) => number = (x, n) => (x % n + n) % n;
 
         let speedUpRepeat: number = 1;
-        this.subscriptions.push(Rx.Observable.fromEvent<KeyboardEvent>(document, 'keydown')
+        this.subscriptions.push(Rx.Observable.fromEvent<KeyboardEvent>(document, "keydown")
             .filter((e) => e.keyCode >= KEY_LEFT && e.keyCode <= KEY_DOWN)
             .subscribe(
                 (e) => {

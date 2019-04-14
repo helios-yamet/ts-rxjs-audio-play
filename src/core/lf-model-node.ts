@@ -1,4 +1,27 @@
-import MainAudio from './main-audio';
+import MainAudio from "./main-audio";
+
+export class LfFunction {
+
+    public tp: number;
+    public te: number;
+    public ta: number;
+    public tc: number;
+    public f: (n: number) => number;
+    public a: (t: number) => number;
+
+    constructor(
+        tp: number, te: number, ta: number, tc: number,
+        f: (t: number) => number,
+        a: (t: number) => number) {
+
+        this.tp = tp;
+        this.te = te;
+        this.ta = ta;
+        this.tc = tc;
+        this.f = f;
+        this.a = a;
+    }
+}
 
 export default class LfModelNode extends AudioWorkletNode {
 
@@ -47,34 +70,10 @@ export default class LfModelNode extends AudioWorkletNode {
 
     constructor(mainAudio: MainAudio) {
 
-        super(mainAudio.audioContext, 'lf-model-processor');
+        super(mainAudio.audioContext, "lf-model-processor");
     }
 
-    public getFrequency = (): AudioParam => this.parameters.get('frequency');
-    public getShapeParam = (): AudioParam => this.parameters.get('shapeParam');
-    public getAspiration = (): AudioParam => this.parameters.get('aspiration');
-}
-
-// tslint:disable-next-line: max-classes-per-file
-export class LfFunction {
-
-    public tp: number;
-    public te: number;
-    public ta: number;
-    public tc: number;
-    public f: (n: number) => number;
-    public a: (t: number) => number;
-
-    constructor(
-        tp: number, te: number, ta: number, tc: number,
-        f: (t: number) => number,
-        a: (t: number) => number) {
-
-        this.tp = tp;
-        this.te = te;
-        this.ta = ta;
-        this.tc = tc;
-        this.f = f;
-        this.a = a;
-    }
+    public getFrequency = (): AudioParam => this.parameters.get("frequency");
+    public getShapeParam = (): AudioParam => this.parameters.get("shapeParam");
+    public getAspiration = (): AudioParam => this.parameters.get("aspiration");
 }

@@ -1,9 +1,9 @@
-import * as Tone from 'tone';
-import Formants, { Vowel } from './formants';
-import LfModelNode from './lf-model-node';
-import MainAudio from './main-audio';
-import { ModulationEvent } from './note-handler';
-import SoundUnit from './sound-unit';
+import * as Tone from "tone";
+import Formants, { Vowel } from "./formants";
+import LfModelNode from "./lf-model-node";
+import MainAudio from "./main-audio";
+import { ModulationEvent } from "./note-handler";
+import SoundUnit from "./sound-unit";
 
 interface IFormantFilter {
     filter: any;
@@ -24,7 +24,7 @@ export default class GlottalSynthesizer extends SoundUnit {
 
         super();
 
-        console.log('Creating a glottal synth');
+        console.log("Creating a glottal synth");
 
         // build an audio graph starting from native Web Audio
         this.mainAudio = mainAudio;
@@ -43,7 +43,7 @@ export default class GlottalSynthesizer extends SoundUnit {
             maxDelay: 0.005,
             frequency: 5,
             depth: .1,
-            type: 'sine',
+            type: "sine",
             wet: 1,
         });
 
@@ -52,7 +52,7 @@ export default class GlottalSynthesizer extends SoundUnit {
         for (let i: number = 0; i < NB_FORMANTS; i++) {
 
             const filter: any = new Tone.Filter({
-                type: 'bandpass',
+                type: "bandpass",
                 frequency: 0,
                 rolloff: -12,
                 Q: 0,
@@ -76,8 +76,8 @@ export default class GlottalSynthesizer extends SoundUnit {
             decay: 0,
             sustain: 1,
             release: .3,
-            attackCurve : 'exponential',
-            releaseCurve  : 'linear',
+            attackCurve: "exponential",
+            releaseCurve: "linear",
         });
         this.envelope.connect(gainNode.gain);
 
@@ -193,7 +193,7 @@ export default class GlottalSynthesizer extends SoundUnit {
         whiteNoise.loop = true;
 
         const aspirationFilter: BiquadFilterNode = this.mainAudio.audioContext.createBiquadFilter();
-        aspirationFilter.type = 'lowpass';
+        aspirationFilter.type = "lowpass";
         aspirationFilter.frequency.value = 1800;
         aspirationFilter.Q.value = 0;
 

@@ -12,11 +12,8 @@ import { Component, Prop, Vue } from 'vue-property-decorator';
 
 @Component
 export default class Panel extends Vue {
-  @Prop()
-  private id!: string;
-
-  @Prop()
-  private label!: string;
+  @Prop() private id!: string;
+  @Prop() private label!: string;
 }
 </script>
 

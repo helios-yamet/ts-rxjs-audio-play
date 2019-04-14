@@ -1,9 +1,9 @@
 <template>
   <div v-bind:id="id" v-bind:title="id" class="knob">
     <div class="knob-drag-area"></div>
-    <div class="knob-value">{{ subject.value }}</div>
+    <div class="knob-value">{{ value }}</div>
     <div class="knob-sprites-wrapper">
-      <div class="knob-sprites"></div>
+      <div class="knob-sprites" :style="rotation"></div>
     </div>
     <div class="knob-label" :class="{selected: selected}" @click="select">
       <span>{{ label }}</span>
@@ -12,7 +12,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Prop, Vue, Watch, Emit } from "vue-property-decorator";
 import $ from "jquery";
 import * as Rx from "rxjs/Rx";
 
@@ -23,59 +23,36 @@ export default class Knob extends Vue {
   @Prop(Number) private minValue!: number;
   @Prop(Number) private maxValue!: number;
   @Prop(Number) private initialValue!: number;
-  
+
+  private subscriptions!: Rx.Subscription[];
+
+  public value: number = this.initialValue;
   public selected: boolean = false;
 
-  // @Prop(Function) readonly displayValue!: (value: number) => string;
-  // @Prop(Function) readonly selectionCallback!: (knob: Knob) => void;
-
-  private subscriptions: Rx.Subscription[];
-  private $knobLabel!: JQuery<HTMLElement>;
-
-  private subject: Rx.BehaviorSubject<number>;
-  private midiId: number | undefined;
-
-  constructor() {
-    super();
-    this.subscriptions = [];
-    this.subject = new Rx.BehaviorSubject(this.initialValue);
+  private get rotation() {
+    const NB_FRAMES: number = 50;
+    const SPRITE_WIDTH: number = 100;
+    const ratio: number =
+      (this.value - this.minValue) / (this.maxValue - this.minValue);
+    const frame: number = Math.floor(ratio * (NB_FRAMES - 1));
+    return `transform: translate(${-frame * SPRITE_WIDTH}px, 0px)`;
   }
 
+  public get valueRatio(): number {
+    return (this.value - this.minValue) / (this.maxValue - this.minValue);
+  }
+
+  @Emit()
   private select() {
     this.selected = !this.selected;
-    this.$emit("select", { id: this.id, selected: this.selected });
+    return { id: this.id, selected: this.selected };
   }
-
-  /**
-   * Emit the next value for this knob, normalized according to min/max values.
-   */
-  public nextByRatio = function(this: Knob, ratio: number): void {
-    this.subject.next(
-      Math.round(this.minValue + ratio * (this.maxValue - this.minValue))
-    );
-  };
 
   private mounted() {
-    // resolve jQuery elements
-    this.$knobLabel = $(`#${this.id} .knob-label`);
-    this.subscriptions.push(this.setupDrag());
-    this.subscriptions.push(this.setupUIUpdate());
-    // this.subscriptions.push(this.setupSelector(this.selectionCallback));
-  }
-
-  private beforeDestroy() {
-    this.subscriptions.forEach(s => s.unsubscribe()); // TODO check if this is necessary
-  }
-
-  /**
-   * Simple drag behavior for the knob (new value changes relative to current value).
-   */
-  private setupDrag = function(this: Knob): Rx.Subscription {
     const MAX_DRAG_DIST: number = 100;
-    const $knobDragArea = $(`#${this.id} .knob-drag-area`);
 
     const mouseDown$ = Rx.Observable.fromEvent<MouseEvent>(
-      $knobDragArea.get(0),
+      $(`#${this.id} .knob-drag-area`).get(0),
       "mousedown"
     );
 
@@ -83,7 +60,7 @@ export default class Knob extends Vue {
       (downEvent: MouseEvent) => {
         downEvent.preventDefault();
         const startY: number = downEvent.screenY;
-        const startValue: number = this.subject.value;
+        const startValue: number = this.value;
 
         return Rx.Observable.fromEvent<MouseEvent>(document, "mousemove")
           .map(moveEvent => {
@@ -103,48 +80,18 @@ export default class Knob extends Vue {
       }
     );
 
-    return mouseDrag$.subscribe(
-      state => this.subject.next(state),
-      error => console.error(error)
+    this.subscriptions = [];
+    this.subscriptions.push(
+      mouseDrag$.subscribe(
+        state => (this.value = state),
+        error => console.error(error)
+      )
     );
-  };
+  }
 
-  /**
-   * Update the UI to reflect the subject value change.
-   */
-  private setupUIUpdate = function(this: Knob): Rx.Subscription {
-    const NB_FRAMES: number = 50;
-    const SPRITE_WIDTH: number = 100;
-    const $knobSprites = $(`#${this.id} .knob-sprites`);
-
-    return this.subject.subscribe(
-      (state: number) => {
-        const ratio: number =
-          (state - this.minValue) / (this.maxValue - this.minValue);
-        const frame: number = Math.floor(ratio * (NB_FRAMES - 1));
-        $knobSprites.css(
-          "transform",
-          `translate(${-frame * SPRITE_WIDTH}px, 0px)`
-        );
-      },
-      error => console.error(error),
-      () => console.log("Completed")
-    );
-  };
-
-  /**
-   * Setup the selection behaviour by click (report selection to caller)
-   */
-  private setupSelector = function(
-    this: Knob,
-    selectionCallback: (knob: Knob) => void
-  ): Rx.Subscription {
-    return Rx.Observable.fromEvent(this.$knobLabel.get(0), "click").subscribe(
-      () => {
-        selectionCallback(this); // TODO convert to vue event emit
-      }
-    );
-  };
+  private beforeDestroy() {
+    this.subscriptions.forEach(s => s.unsubscribe());
+  }
 }
 </script>
 

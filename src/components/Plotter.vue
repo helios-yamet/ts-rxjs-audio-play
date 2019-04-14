@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import { Component, Prop, Vue, Watch } from "vue-property-decorator";
 import "chartist/dist/chartist.min.css";
 import $ from "jquery";
 import * as Chartist from "chartist";
@@ -39,20 +39,17 @@ export default class Plotter extends Vue {
   public mounted() {
     this.chart = new Chartist.Line(
       $(`.plot`).get(0),
-      this.buildData(this.f),
-      this.buildOptions(this.labels, this.ticks)
+      Plotter.buildData(this.f),
+      Plotter.buildOptions(this.labels, this.ticks)
     );
   }
 
-  public updateChart = (
-    f: (x: number) => number,
-    labels: string[],
-    ticks: number[]
-  ): void => {
-    this.chart.update(this.buildData(f), this.buildOptions(labels, ticks));
+  @Watch('f')
+  public updateChart (f: (x: number) => number, ticks: number[]) {
+    this.chart.update(Plotter.buildData(f), Plotter.buildOptions(this.labels, ticks));
   };
 
-  private buildData = (f: (x: number) => number): {} => {
+  private static buildData = (f: (x: number) => number): {} => {
     let values: Point[] = [];
     for (let i: number = 0; i <= SAMPLES; i++) {
       values.push({
@@ -64,7 +61,7 @@ export default class Plotter extends Vue {
     return { series: [{ data: values }] };
   };
 
-  private buildOptions = (labels: string[], ticks: number[]): {} => {
+  private static buildOptions = (labels: string[], ticks: number[]): {} => {
     let i: number = 0;
     return {
       height: 135,

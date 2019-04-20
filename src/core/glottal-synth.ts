@@ -100,7 +100,7 @@ export default class GlottalSynth extends SoundUnit {
             decay: 0,
             sustain: 1,
             release: .3,
-            attackCurve: "exponential",
+            attackCurve: "linear",
             releaseCurve: "linear",
         });
         this.envelope.connect(gainNode.gain);
@@ -159,11 +159,11 @@ export default class GlottalSynth extends SoundUnit {
     }
 
     public setEnvelopeAttack(this: GlottalSynth, amount: number): void {
-        this.envelope.attack = this.mapRange(amount, 0.1, 2);
+        this.envelope.attack = this.mapRange(amount, 0.1, 4);
     }
 
     public setEnvelopeDecay(this: GlottalSynth, amount: number): void {
-        this.envelope.decay = this.mapRange(amount, 0, 2);
+        this.envelope.decay = this.mapRange(amount, 0, 4);
     }
 
     public setEnvelopeSustain(this: GlottalSynth, amount: number): void {
@@ -171,7 +171,7 @@ export default class GlottalSynth extends SoundUnit {
     }
 
     public setEnvelopeRelease(this: GlottalSynth, amount: number): void {
-        this.envelope.release = this.mapRange(amount, 0, 3);
+        this.envelope.release = this.mapRange(amount, 0, 4);
     }
 
     public setVowel(this: GlottalSynth, vowel: Vowel, rampTime?: number): any {

@@ -1,6 +1,9 @@
 <template>
   <div>
     <div class="row">
+      <Panel id="panel-gate" label="Gate">
+        <Gate v-on:note-on="synth.noteOn()" v-on:note-off="synth.noteOff()"></Gate>
+      </Panel>
       <Panel id="panel-synth" label="Vowel Synthesis">
         <Plotter id="plotter" label="Waveform" :labels="['Ts', 'Tp', 'Te', 'Tc']"></Plotter>
         <Knob
@@ -94,6 +97,7 @@
 
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from "vue-property-decorator";
+import Gate from "@/components/Gate.vue";
 import Knob from "@/components/Knob.vue";
 import Panel from "@/components/Panel.vue";
 import Plotter from "@/components/Plotter.vue";
@@ -127,7 +131,7 @@ class SynthState {
 }
 
 @Component({
-  components: { Knob, Panel, Plotter }
+  components: { Gate, Knob, Panel, Plotter }
 })
 export default class Synth extends Vue {
   @Prop(MainAudio) private mainAudio!: MainAudio;
@@ -135,11 +139,11 @@ export default class Synth extends Vue {
   public synthState = new SynthState();
   private synth!: GlottalSynth;
 
-  created() {
+  private created() {
     this.synth = new GlottalSynth(this.mainAudio, 70, Vowel.A_Bass);
   }
 
-  selectKnob(knob: any) {
+  private selectKnob(knob: any) {
     console.log(`Knob selected! --> ${knob}`);
   }
 
@@ -201,4 +205,5 @@ export default class Synth extends Vue {
 </script>
 
 <style scoped>
+
 </style>

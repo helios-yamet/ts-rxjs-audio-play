@@ -1,7 +1,7 @@
 <template>
   <div v-bind:id="id" v-bind:title="id" class="knob">
     <div class="knob-drag-area"></div>
-    <div class="knob-value">{{ internalValue }}</div>
+    <div class="knob-value">{{ displayValueInternal() }}</div>
     <div class="knob-sprites-wrapper">
       <div class="knob-sprites" :style="rotation"></div>
     </div>
@@ -23,11 +23,17 @@ export default class Knob extends Vue {
   @Prop(Number) private minValue!: number;
   @Prop(Number) private maxValue!: number;
   @Prop(Number) private value!: number;
-
+  @Prop(Function) private displayValue!: (v: number) => string;
   private subscriptions!: Rx.Subscription[];
 
   public internalValue: number = this.value;
   public selected: boolean = false;
+
+  private displayValueInternal() {
+    return this.displayValue
+      ? this.displayValue(this.internalValue)
+      : this.internalValue;
+  }
 
   private get rotation() {
     const NB_FRAMES: number = 50;
@@ -39,10 +45,12 @@ export default class Knob extends Vue {
   }
 
   public get valueRatio(): number {
-    return (this.internalValue - this.minValue) / (this.maxValue - this.minValue);
+    return (
+      (this.internalValue - this.minValue) / (this.maxValue - this.minValue)
+    );
   }
 
-  @Watch('value')
+  @Watch("value")
   private onValueModified(newValue: number) {
     this.internalValue = newValue;
   }
@@ -89,8 +97,8 @@ export default class Knob extends Vue {
     this.subscriptions.push(
       mouseDrag$.subscribe(
         state => {
-          this.internalValue = state
-          this.$emit('update:value', state);
+          this.internalValue = state;
+          this.$emit("update:value", state);
         },
         error => console.error(error)
       )
@@ -199,7 +207,7 @@ export default class Knob extends Vue {
   background-color: #b6cfe2;
 
   /* typography */
-  font-size: .9em;
+  font-size: 0.9em;
   font-family: sans-serif;
   color: rgb(99, 99, 99);
   text-align: center;

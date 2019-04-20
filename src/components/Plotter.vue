@@ -67,17 +67,22 @@ export default class Plotter extends Vue {
       lineSmooth: false,
       showPoint: false,
       axisY: {
-        high: .6,
+        type: Chartist.AutoScaleAxis,
+        labelOffset: {
+          x: 0,
+          y: 5
+        },
+        offset: 22,
+        high: .5,
         low: -1
       },
       axisX: {
         type: Chartist.FixedScaleAxis,
+        offset: 22,
         high: 1,
         low: 0,
         ticks: [waveform.tp, waveform.te, waveform.ta, waveform.tc],
-        labelInterpolationFnc: () => {
-          return labels[i++];
-        }
+        labelInterpolationFnc: () => labels[i++]
       }
     };
   };
@@ -98,8 +103,8 @@ export default class Plotter extends Vue {
   background-color: rgb(237, 239, 240);
 }
 
-.ct-chart-bar {
-  padding: 10px;
+.ct-chart-line {
+  padding-left: -10px;
 }
 
 .ct-series-a .ct-line {

@@ -163,7 +163,7 @@ export default class GlottalSynth extends SoundUnit {
     }
 
     public setEnvelopeAttack(this: GlottalSynth, amount: number): void {
-        this.envelope.attack = this.mapRange(amount, 0.1, 4);
+        this.envelope.attack = this.mapRange(amount, 0.01, 4);
     }
 
     public setEnvelopeDecay(this: GlottalSynth, amount: number): void {

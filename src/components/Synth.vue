@@ -14,6 +14,7 @@
             :maxValue="synthState.shapeParam.max"
             :value.sync="synthState.shapeParam.value"
             v-on:select="selectKnob"
+            :displayValue="synthState.shapeParam.display"
           ></Knob>
           <Knob
             id="knob-freq"
@@ -21,6 +22,7 @@
             :minValue="synthState.frequency.min"
             :maxValue="synthState.frequency.max"
             :value.sync="synthState.frequency.value"
+            :displayValue="synthState.frequency.display"
           ></Knob>
           <Knob
             id="knob-aspi"
@@ -28,6 +30,7 @@
             :minValue="synthState.aspiration.min"
             :maxValue="synthState.aspiration.max"
             :value.sync="synthState.aspiration.value"
+            :displayValue="synthState.aspiration.display"
           ></Knob>
           <Knob
             id="knob-vowel"
@@ -35,6 +38,7 @@
             :minValue="synthState.vowel.min"
             :maxValue="synthState.vowel.max"
             :value.sync="synthState.vowel.value"
+            :displayValue="synthState.vowel.display"
           ></Knob>
         </Panel>
       </div>
@@ -48,6 +52,7 @@
             :minValue="synthState.vibAmount.min"
             :maxValue="synthState.vibAmount.max"
             :value.sync="synthState.vibAmount.value"
+            :displayValue="synthState.vibAmount.display"
           ></Knob>
           <Knob
             id="vib-freq"
@@ -55,6 +60,7 @@
             :minValue="synthState.vibFrequency.min"
             :maxValue="synthState.vibFrequency.max"
             :value.sync="synthState.vibFrequency.value"
+            :displayValue="synthState.vibFrequency.display"
           ></Knob>
           <Knob
             id="vib-depth"
@@ -62,6 +68,7 @@
             :minValue="synthState.vibDepth.min"
             :maxValue="synthState.vibDepth.max"
             :value.sync="synthState.vibDepth.value"
+            :displayValue="synthState.vibDepth.display"
           ></Knob>
         </Panel>
         <Panel id="panel-envelope" label="Envelope">
@@ -71,6 +78,7 @@
             :minValue="synthState.envAttack.min"
             :maxValue="synthState.envAttack.max"
             :value.sync="synthState.envAttack.value"
+            :displayValue="synthState.envAttack.display"
           ></Knob>
           <Knob
             id="env-d"
@@ -78,6 +86,7 @@
             :minValue="synthState.envDecay.min"
             :maxValue="synthState.envDecay.max"
             :value.sync="synthState.envDecay.value"
+            :displayValue="synthState.envDecay.display"
           ></Knob>
           <Knob
             id="env-s"
@@ -85,6 +94,7 @@
             :minValue="synthState.envSustain.min"
             :maxValue="synthState.envSustain.max"
             :value.sync="synthState.envSustain.value"
+            :displayValue="synthState.envSustain.display"
           ></Knob>
           <Knob
             id="env-r"
@@ -92,6 +102,7 @@
             :minValue="synthState.envRelease.min"
             :maxValue="synthState.envRelease.max"
             :value.sync="synthState.envRelease.value"
+            :displayValue="synthState.envRelease.display"
           ></Knob>
         </Panel>
       </div>
@@ -113,24 +124,55 @@ class SynthProp {
   public value: number;
   public min: number;
   public max: number;
-  constructor(value?: number, min?: number, max?: number) {
+  public display: ((v: number) => string) | undefined;
+  constructor(
+    value?: number,
+    min?: number,
+    max?: number
+  ) {
     this.value = value || 0;
     this.min = min || 0;
     this.max = max || 100;
   }
+  public displayUsing(display: (v: number) => string): SynthProp {
+    this.display = display;
+    return this;
+  }
 }
 class SynthState {
-  public shapeParam = new SynthProp(20);
-  public frequency = new SynthProp(120, 30, 450);
-  public aspiration = new SynthProp();
-  public vowel = new SynthProp(20, 0, 24);
-  public vibAmount = new SynthProp(50);
-  public vibFrequency = new SynthProp(50);
-  public vibDepth = new SynthProp(10);
-  public envAttack = new SynthProp(20);
-  public envDecay = new SynthProp();
-  public envSustain = new SynthProp(100);
-  public envRelease = new SynthProp(15);
+  public shapeParam = new SynthProp(20).displayUsing(
+    (v: number) => `${(0.024 * v + 0.3).toFixed(2)}`
+  );
+  public frequency = new SynthProp(120, 30, 450).displayUsing(
+    (v: number) => `${v} Hz`
+  );
+  public aspiration = new SynthProp().displayUsing(
+    (v: number) => `${v} %`
+  );
+  public vowel = new SynthProp(20, 0, 24).displayUsing(
+    (v: number) => Formants.all[v].name
+  );
+  public vibAmount = new SynthProp(50).displayUsing(
+    (v: number) => `${v} %`
+  );
+  public vibFrequency = new SynthProp(50).displayUsing(
+    (v: number) => `${(0.09 * v + 1).toFixed(1)} Hz`
+  );
+  public vibDepth = new SynthProp(10).displayUsing(
+    (v: number) => `${v} %`
+  );
+  public envAttack = new SynthProp(20).displayUsing(
+    (v: number) => `${(40 * v)} ms`
+  );
+  public envDecay = new SynthProp().displayUsing(
+    (v: number) => `${(40 * v)} ms`
+  );
+  public envSustain = new SynthProp(100).displayUsing(
+    (v: number) => `${v} %`
+  );
+  public envRelease = new SynthProp(15).displayUsing(
+    (v: number) => `${(40 * v)} ms`
+  );
 }
 
 @Component({

@@ -1,5 +1,5 @@
 <template>
-  <footer class="footer">
+  <footer class="footer bg-dark">
     <div class="container">
       <span class="text-muted"></span>
     </div>

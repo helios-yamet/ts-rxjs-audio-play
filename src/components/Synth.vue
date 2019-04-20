@@ -1,96 +1,100 @@
 <template>
-  <div>
+  <div class="container synth">
     <div class="row">
-      <Panel id="panel-gate" label="Gate">
-        <Gate v-on:note-on="synth.noteOn()" v-on:note-off="synth.noteOff()"></Gate>
-      </Panel>
-      <Panel id="panel-synth" label="Vowel Synthesis">
-        <Plotter id="plotter" label="Waveform" :labels="['Ts', 'Tp', 'Te', 'Tc']"></Plotter>
-        <Knob
-          id="knob-shap"
-          label="Shape (rd)"
-          :minValue="synthState.shapeParam.min"
-          :maxValue="synthState.shapeParam.max"
-          :value.sync="synthState.shapeParam.value"
-          v-on:select="selectKnob"
-        ></Knob>
-        <Knob
-          id="knob-freq"
-          label="Frequency"
-          :minValue="synthState.frequency.min"
-          :maxValue="synthState.frequency.max"
-          :value.sync="synthState.frequency.value"
-        ></Knob>
-        <Knob
-          id="knob-aspi"
-          label="Aspiration"
-          :minValue="synthState.aspiration.min"
-          :maxValue="synthState.aspiration.max"
-          :value.sync="synthState.aspiration.value"
-        ></Knob>
-        <Knob
-          id="knob-vowel"
-          label="Vowel"
-          :minValue="synthState.vowel.min"
-          :maxValue="synthState.vowel.max"
-          :value.sync="synthState.vowel.value"
-        ></Knob>
-      </Panel>
+      <div class="col-md">
+        <Panel id="panel-gate" label="Gate">
+          <Gate v-on:note-on="synth.noteOn()" v-on:note-off="synth.noteOff()"></Gate>
+        </Panel>
+        <Panel id="panel-synth" label="Vowel Synthesis">
+          <Plotter id="plotter" label="Waveform" :labels="['Ts', 'Tp', 'Te', 'Tc']"></Plotter>
+          <Knob
+            id="knob-shap"
+            label="Shape (rd)"
+            :minValue="synthState.shapeParam.min"
+            :maxValue="synthState.shapeParam.max"
+            :value.sync="synthState.shapeParam.value"
+            v-on:select="selectKnob"
+          ></Knob>
+          <Knob
+            id="knob-freq"
+            label="Frequency"
+            :minValue="synthState.frequency.min"
+            :maxValue="synthState.frequency.max"
+            :value.sync="synthState.frequency.value"
+          ></Knob>
+          <Knob
+            id="knob-aspi"
+            label="Aspiration"
+            :minValue="synthState.aspiration.min"
+            :maxValue="synthState.aspiration.max"
+            :value.sync="synthState.aspiration.value"
+          ></Knob>
+          <Knob
+            id="knob-vowel"
+            label="Vowel"
+            :minValue="synthState.vowel.min"
+            :maxValue="synthState.vowel.max"
+            :value.sync="synthState.vowel.value"
+          ></Knob>
+        </Panel>
+      </div>
     </div>
     <div class="row">
-      <Panel id="panel-vibrato" label="Vibrato">
-        <Knob
-          id="vib-amt"
-          label="Amount"
-          :minValue="synthState.vibAmount.min"
-          :maxValue="synthState.vibAmount.max"
-          :value.sync="synthState.vibAmount.value"
-        ></Knob>
-        <Knob
-          id="vib-freq"
-          label="Frequency"
-          :minValue="synthState.vibFrequency.min"
-          :maxValue="synthState.vibFrequency.max"
-          :value.sync="synthState.vibFrequency.value"
-        ></Knob>
-        <Knob
-          id="vib-depth"
-          label="Depth"
-          :minValue="synthState.vibDepth.min"
-          :maxValue="synthState.vibDepth.max"
-          :value.sync="synthState.vibDepth.value"
-        ></Knob>
-      </Panel>
-      <Panel id="panel-envelope" label="Envelope">
-        <Knob
-          id="env-a"
-          label="Attack"
-          :minValue="synthState.envAttack.min"
-          :maxValue="synthState.envAttack.max"
-          :value.sync="synthState.envAttack.value"
-        ></Knob>
-        <Knob
-          id="env-d"
-          label="Decay"
-          :minValue="synthState.envDecay.min"
-          :maxValue="synthState.envDecay.max"
-          :value.sync="synthState.envDecay.value"
-        ></Knob>
-        <Knob
-          id="env-s"
-          label="Sustain"
-          :minValue="synthState.envSustain.min"
-          :maxValue="synthState.envSustain.max"
-          :value.sync="synthState.envSustain.value"
-        ></Knob>
-        <Knob
-          id="env-r"
-          label="Release"
-          :minValue="synthState.envRelease.min"
-          :maxValue="synthState.envRelease.max"
-          :value.sync="synthState.envRelease.value"
-        ></Knob>
-      </Panel>
+      <div class="col-md">
+        <Panel id="panel-vibrato" label="Vibrato">
+          <Knob
+            id="vib-amt"
+            label="Amount"
+            :minValue="synthState.vibAmount.min"
+            :maxValue="synthState.vibAmount.max"
+            :value.sync="synthState.vibAmount.value"
+          ></Knob>
+          <Knob
+            id="vib-freq"
+            label="Frequency"
+            :minValue="synthState.vibFrequency.min"
+            :maxValue="synthState.vibFrequency.max"
+            :value.sync="synthState.vibFrequency.value"
+          ></Knob>
+          <Knob
+            id="vib-depth"
+            label="Depth"
+            :minValue="synthState.vibDepth.min"
+            :maxValue="synthState.vibDepth.max"
+            :value.sync="synthState.vibDepth.value"
+          ></Knob>
+        </Panel>
+        <Panel id="panel-envelope" label="Envelope">
+          <Knob
+            id="env-a"
+            label="Attack"
+            :minValue="synthState.envAttack.min"
+            :maxValue="synthState.envAttack.max"
+            :value.sync="synthState.envAttack.value"
+          ></Knob>
+          <Knob
+            id="env-d"
+            label="Decay"
+            :minValue="synthState.envDecay.min"
+            :maxValue="synthState.envDecay.max"
+            :value.sync="synthState.envDecay.value"
+          ></Knob>
+          <Knob
+            id="env-s"
+            label="Sustain"
+            :minValue="synthState.envSustain.min"
+            :maxValue="synthState.envSustain.max"
+            :value.sync="synthState.envSustain.value"
+          ></Knob>
+          <Knob
+            id="env-r"
+            label="Release"
+            :minValue="synthState.envRelease.min"
+            :maxValue="synthState.envRelease.max"
+            :value.sync="synthState.envRelease.value"
+          ></Knob>
+        </Panel>
+      </div>
     </div>
   </div>
 </template>
@@ -205,5 +209,14 @@ export default class Synth extends Vue {
 </script>
 
 <style scoped>
+.synth {
+  /* box model */
+  margin: auto;
+  width: 950px;
 
+  /* positioning */
+  padding: 50px 20px 30px 20px;
+
+  background-color: #26618e;
+}
 </style>

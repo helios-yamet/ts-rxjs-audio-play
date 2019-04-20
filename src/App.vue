@@ -1,13 +1,13 @@
 <template>
   <div id="app">
     <AppHeader></AppHeader>
-    <div id="content">
+    <div id="content" class="container">
       <div class="row">
-        <div id="inputs-container" class="col-md-2"></div>
-        <div id="main-controls-container" class="col-md-8">
+        <div id="inputs-container" class="col-md"></div>
+        <div id="main-controls-container" class="col-md">
           <Synth :mainAudio="mainAudio"></Synth>
         </div>
-        <div id="outputs-container" class="col-md-2">
+        <div id="outputs-container" class="col-md">
           <Visualizer id="visualizer" :mainAudio="mainAudio"></Visualizer>
         </div>
       </div>

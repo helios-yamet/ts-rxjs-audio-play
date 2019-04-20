@@ -199,7 +199,7 @@ export default class Knob extends Vue {
   background-color: #b6cfe2;
 
   /* typography */
-  font-size: 1em;
+  font-size: .9em;
   font-family: sans-serif;
   color: rgb(99, 99, 99);
   text-align: center;

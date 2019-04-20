@@ -24,8 +24,10 @@ export default class Panel extends Vue {
   float: left;
 
   /* box-model */
-  margin: 0px 10px 10px 10px;
+  margin: 0px 0px 10px 10px;
   padding: 10px;
+  height: 205px;
+  border-radius: 5px;
 
   /* visual */
   background-color: rgb(237, 239, 240);
@@ -36,16 +38,18 @@ export default class Panel extends Vue {
   width: 100%;
   height: 20px;
   margin-bottom: 10px;
+  padding-left: 10px;
+  border-radius: 5px;
 
   /* visual */
   background-color: #b6cfe2;
 
   /* typography */
-  font-size: 1em;
+  font-size: .9em;
   font-family: sans-serif;
   font-weight: bold;
   color: rgb(99, 99, 99);
-  text-align: center;
+  text-align: left;
 
   /* misc */
   user-select: none;

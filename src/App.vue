@@ -3,13 +3,11 @@
     <AppHeader></AppHeader>
     <div id="content" class="container">
       <div class="row">
-        <div id="inputs-container" class="col-md"></div>
-        <div id="main-controls-container" class="col-md">
+        <div id="inputs-container" class="col"></div>
+        <div id="main-controls-container" class="col">
           <Synth :mainAudio="mainAudio"></Synth>
         </div>
-        <div id="outputs-container" class="col-md">
-          <Visualizer id="visualizer" :mainAudio="mainAudio"></Visualizer>
-        </div>
+        <div id="outputs-container" class="col"></div>
       </div>
     </div>
     <AppFooter></AppFooter>
@@ -21,11 +19,10 @@ import { Component, Vue, Prop } from 'vue-property-decorator';
 import AppHeader from '@/components/AppHeader.vue';
 import AppFooter from '@/components/AppFooter.vue';
 import Synth from '@/components/Synth.vue';
-import Visualizer from '@/components/Visualizer.vue';
 import MainAudio from '@/core/main-audio';
 
 @Component({
-  components: { AppHeader, AppFooter, Synth, Visualizer },
+  components: { AppHeader, AppFooter, Synth },
 })
 export default class App extends Vue {
 
@@ -39,7 +36,7 @@ export default class App extends Vue {
 </script>
 
 <style>
-#content {
-  margin-top: 60px;
+#content.container {
+    margin-top: 60px;
 }
 </style>

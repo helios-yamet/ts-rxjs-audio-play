@@ -26,7 +26,7 @@ export default class Panel extends Vue {
   /* box-model */
   margin: 0px 0px 10px 10px;
   padding: 10px;
-  height: 205px;
+  height: 180px;
   border-radius: 5px;
 
   /* visual */

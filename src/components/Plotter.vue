@@ -63,7 +63,7 @@ export default class Plotter extends Vue {
     const labels = ["Tp", "Te", "Ta", "Tc"];
     return {
       height: 135,
-      width: 230,
+      width: 200,
       lineSmooth: false,
       showPoint: false,
       axisY: {
@@ -97,7 +97,7 @@ export default class Plotter extends Vue {
 
   /* box-model */
   margin: 0px 0px;
-  padding: 10px;
+  padding: 0px;
 
   /* visual */
   background-color: rgb(237, 239, 240);

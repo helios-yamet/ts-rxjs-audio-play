@@ -1,5 +1,6 @@
 import * as Rx from "rxjs/Rx";
 import SoundUnit from "./sound-unit";
+import "@types/webmidi";
 
 const MIDI_CONTROL_CHANGE: number = 176;
 const MIDI_NOTE_ON_EVENT: number = 144;

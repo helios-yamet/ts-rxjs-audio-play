@@ -119,7 +119,7 @@ export default class Knob extends Vue {
 
   /* box-model */
   margin: 0px 0px;
-  padding: 10px;
+  padding: 0px 5px;
 
   /* visual */
   background-color: rgb(237, 239, 240);

@@ -1,3 +1,6 @@
+import lfModule from "!file-loader?name=[name].js!ts-loader?transpileOnly!./lf-model-processor.ts";
+import * as Rx from "rxjs/Rx";
+
 import * as Tone from "tone";
 import Formants, { Vowel } from "./formants";
 import LfModelNode from "./lf-model-node";
@@ -12,11 +15,15 @@ interface IFormantFilter {
 
 const NB_FORMANTS: number = 5;
 
-export default class GlottalSynthesizer extends SoundUnit {
+export default class GlottalSynth extends SoundUnit {
 
     private mainAudio: MainAudio;
-    private lfModel: LfModelNode;
-    private formantFilters: IFormantFilter[];
+
+    private initFrequency: number;
+    private initVowel: Vowel;
+    private lfModel!: LfModelNode;
+    private formantFilters!: IFormantFilter[];
+
     private vibrato: any;
     private envelope: any;
 
@@ -28,10 +35,27 @@ export default class GlottalSynthesizer extends SoundUnit {
 
         // build an audio graph starting from native Web Audio
         this.mainAudio = mainAudio;
+        this.initFrequency = frequency;
+        this.initVowel = vowel;
+
+        // load worklet in audio context
+        Rx.Observable.fromPromise(mainAudio.audioContext.audioWorklet.addModule(lfModule))
+            .take(1)
+            .subscribe(
+                () => {
+                    console.log(`Worklet processor '${lfModule}' loaded`);
+                    this.setupAudioGraph();
+                    // this.inputController.setSoundUnit(this.soundUnit);
+                },
+                (error: any) => console.error(error),
+            );
+    }
+
+    private setupAudioGraph(): void {
 
         this.lfModel = new LfModelNode(this.mainAudio);
         this.lfModel.port.onmessage = (msg) => console.log(`Message from sound processor: ${msg.data}`);
-        this.lfModel.getFrequency().setValueAtTime(frequency, mainAudio.audioContext.currentTime);
+        this.lfModel.getFrequency().setValueAtTime(this.initFrequency, this.mainAudio.audioContext.currentTime);
 
         const aspirationNoise: AudioNode = this.createAspirationNoiseNode();
         aspirationNoise.connect(this.lfModel); // then connects to sourceSwitch
@@ -67,7 +91,7 @@ export default class GlottalSynthesizer extends SoundUnit {
                 volume,
             });
         }
-        this.setVowel(vowel);
+        this.setVowel(this.initVowel);
 
         // link it all together
         const gainNode: any = new Tone.Gain();
@@ -86,12 +110,13 @@ export default class GlottalSynthesizer extends SoundUnit {
         this.mainAudio.toMaster(gainNode);
     }
 
-    public noteOn(this: GlottalSynthesizer): void {
+    public noteOn(this: GlottalSynth): void {
         this.envelope.triggerAttack();
     }
 
+    // ------------>>> TODO move this out, should be part of the inputs (not synth engine)
     // simple modulation which maps to frequency (female voice, starts gluttural and goes softer)
-    public modulate(this: GlottalSynthesizer, modulation: ModulationEvent): void {
+    public modulate(this: GlottalSynth, modulation: ModulationEvent): void {
 
         if (modulation.firstEvent) {
             this.setVowel(Vowel.A_Soprano);
@@ -105,51 +130,51 @@ export default class GlottalSynthesizer extends SoundUnit {
         this.setFrequency(super.mapRange(modulation.absolute, 30, 450));
     }
 
-    public noteOff(this: GlottalSynthesizer): void {
+    public noteOff(this: GlottalSynth): void {
         this.envelope.triggerRelease();
     }
 
-    public setAspiration(this: GlottalSynthesizer, amount: number): void {
+    public setAspiration(this: GlottalSynth, amount: number): void {
         this.lfModel.getAspiration().setValueAtTime(amount / 100, this.mainAudio.audioContext.currentTime);
     }
 
-    public setFrequency(this: GlottalSynthesizer, frequency: number): void {
+    public setFrequency(this: GlottalSynth, frequency: number): void {
         this.lfModel.getFrequency().setValueAtTime(frequency, this.mainAudio.audioContext.currentTime);
     }
 
-    public setShapeParam(this: GlottalSynthesizer, rd: number): any {
+    public setShapeParam(this: GlottalSynth, rd: number): any {
         this.lfModel.getShapeParam().setValueAtTime(this.mapRange(rd, 0.3, 2.7), 0);
     }
 
-    public setVibratoAmount(this: GlottalSynthesizer, amount: number): void {
+    public setVibratoAmount(this: GlottalSynth, amount: number): void {
         this.vibrato.wet.setValueAtTime(this.mapRange(amount, 0, 1), 0);
     }
 
-    public setVibratoFrequency(this: GlottalSynthesizer, amount: number): void {
+    public setVibratoFrequency(this: GlottalSynth, amount: number): void {
         this.vibrato.frequency.setValueAtTime(this.mapRange(amount, 1, 10), 0);
     }
 
-    public setVibratoDepth(this: GlottalSynthesizer, amount: number): void {
+    public setVibratoDepth(this: GlottalSynth, amount: number): void {
         this.vibrato.depth.setValueAtTime(this.mapRange(amount, 0, 1), 0);
     }
 
-    public setEnvelopeAttack(this: GlottalSynthesizer, amount: number): void {
+    public setEnvelopeAttack(this: GlottalSynth, amount: number): void {
         this.envelope.attack = this.mapRange(amount, 0.1, 2);
     }
 
-    public setEnvelopeDecay(this: GlottalSynthesizer, amount: number): void {
+    public setEnvelopeDecay(this: GlottalSynth, amount: number): void {
         this.envelope.decay = this.mapRange(amount, 0, 2);
     }
 
-    public setEnvelopeSustain(this: GlottalSynthesizer, amount: number): void {
+    public setEnvelopeSustain(this: GlottalSynth, amount: number): void {
         this.envelope.sustain = this.mapRange(amount, 0, 1);
     }
 
-    public setEnvelopeRelease(this: GlottalSynthesizer, amount: number): void {
+    public setEnvelopeRelease(this: GlottalSynth, amount: number): void {
         this.envelope.release = this.mapRange(amount, 0, 3);
     }
 
-    public setVowel(this: GlottalSynthesizer, vowel: Vowel, rampTime?: number): any {
+    public setVowel(this: GlottalSynth, vowel: Vowel, rampTime?: number): any {
 
         let i: number = 0;
         const magicFactor: number = 1.2;
@@ -177,7 +202,7 @@ export default class GlottalSynthesizer extends SoundUnit {
         // do some house-keeping here
     }
 
-    private createAspirationNoiseNode(this: GlottalSynthesizer): AudioNode {
+    private createAspirationNoiseNode(this: GlottalSynth): AudioNode {
 
         const BUFFER_SIZE: number = this.mainAudio.audioContext.sampleRate * 4;
         const buffer: AudioBuffer = this.mainAudio.audioContext.createBuffer(

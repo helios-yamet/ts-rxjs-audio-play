@@ -5,9 +5,12 @@ const INIT_FREQUENCY: number = 120;
 const INIT_SHAPE_PARAM: number = 1;
 const APIRATION_PARAM: number = 0;
 
+/**
+ * Implementation of LF-Model glottal flow
+ */
 class LfFunction {
 
-    public static createWaveform = (rd: number): LfFunction => {
+    public static createWaveformFunction = (rd: number): LfFunction => {
 
         rd = Math.max(rd, 0.3);
         rd = Math.min(rd, 2.7);
@@ -69,13 +72,27 @@ class LfFunction {
         this.f = f;
         this.a = a;
     }
+
+    public render(samples: number): ILfWaveform {
+        const values: number[] = [];
+        for (let i: number = 0; i < samples; i++) {
+            values.push(this.f(i / samples));
+        }
+        return {
+            tp: this.tp,
+            te: this.te,
+            ta: this.ta,
+            tc: this.tc,
+            values: values
+        };
+    }
 }
 
 class LfModel extends AudioWorkletProcessor {
 
     private frequencyValue: number = INIT_FREQUENCY;
     private shapeParamValue: number = INIT_SHAPE_PARAM;
-    private currentFunction: LfFunction = LfFunction.createWaveform(INIT_SHAPE_PARAM);
+    private currentFunction: LfFunction = LfFunction.createWaveformFunction(INIT_SHAPE_PARAM);
     private framesPerWaveformCycle: number = Math.floor(SAMPLE_RATE / INIT_FREQUENCY);
     private frameInWaveform: number = 0;
 
@@ -83,6 +100,11 @@ class LfModel extends AudioWorkletProcessor {
 
     constructor() {
         super();
+
+        // the 
+        this.port.onmessage = (event) => {
+            this.port.postMessage(this.currentFunction.render(event.data));
+        };
     }
 
     static get parameterDescriptors(): ProcessorParams[] {
@@ -124,7 +146,7 @@ class LfModel extends AudioWorkletProcessor {
                 const newShapeParam: number = parameters.shapeParam[0];
                 if (newShapeParam !== this.shapeParamValue) {
                     this.shapeParamValue = newShapeParam;
-                    this.currentFunction = LfFunction.createWaveform(this.shapeParamValue);
+                    this.currentFunction = LfFunction.createWaveformFunction(this.shapeParamValue);
                 }
             }
 

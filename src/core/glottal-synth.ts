@@ -14,6 +14,7 @@ interface IFormantFilter {
 }
 
 const NB_FORMANTS: number = 5;
+const PLOTTER_RESOLUTION: number = 50;
 
 export default class GlottalSynth extends SoundUnit {
 
@@ -21,13 +22,14 @@ export default class GlottalSynth extends SoundUnit {
 
     private initFrequency: number;
     private initVowel: Vowel;
+    private onWaveformChange: (newWaveform: ILfWaveform) => void;
     private lfModel!: LfModelNode;
     private formantFilters!: IFormantFilter[];
 
     private vibrato: any;
     private envelope: any;
 
-    constructor(mainAudio: MainAudio, frequency: number, vowel: Vowel) {
+    constructor(mainAudio: MainAudio, frequency: number, vowel: Vowel, onWaveformChange: (newWaveform: ILfWaveform) => void) {
 
         super();
 
@@ -37,6 +39,7 @@ export default class GlottalSynth extends SoundUnit {
         this.mainAudio = mainAudio;
         this.initFrequency = frequency;
         this.initVowel = vowel;
+        this.onWaveformChange = onWaveformChange;
 
         // load worklet in audio context
         Rx.Observable.fromPromise(mainAudio.audioContext.audioWorklet.addModule(lfModule))
@@ -53,8 +56,8 @@ export default class GlottalSynth extends SoundUnit {
 
     private setupAudioGraph(): void {
 
-        this.lfModel = new LfModelNode(this.mainAudio);
-        this.lfModel.port.onmessage = (msg) => console.log(`Message from sound processor: ${msg.data}`);
+        this.lfModel = new LfModelNode(this.mainAudio, this.onWaveformChange);
+        this.lfModel.requestWaveform(PLOTTER_RESOLUTION);
         this.lfModel.getFrequency().setValueAtTime(this.initFrequency, this.mainAudio.audioContext.currentTime);
 
         const aspirationNoise: AudioNode = this.createAspirationNoiseNode();
@@ -96,7 +99,7 @@ export default class GlottalSynth extends SoundUnit {
         // link it all together
         const gainNode: any = new Tone.Gain();
         this.envelope = new Tone.Envelope({
-            attack: .2,
+            attack: .05,
             decay: 0,
             sustain: 1,
             release: .3,
@@ -144,6 +147,7 @@ export default class GlottalSynth extends SoundUnit {
 
     public setShapeParam(this: GlottalSynth, rd: number): any {
         this.lfModel.getShapeParam().setValueAtTime(this.mapRange(rd, 0.3, 2.7), 0);
+        this.lfModel.port.postMessage(PLOTTER_RESOLUTION);
     }
 
     public setVibratoAmount(this: GlottalSynth, amount: number): void {

@@ -6,10 +6,10 @@
           <Gate v-on:note-on="synth.noteOn()" v-on:note-off="synth.noteOff()"></Gate>
         </Panel>
         <Panel id="panel-synth" label="Vowel Synthesis">
-          <Plotter id="plotter" label="Waveform" :labels="['Ts', 'Tp', 'Te', 'Tc']"></Plotter>
+          <Plotter id="plotter" :lfWaveform="lfWaveform"></Plotter>
           <Knob
             id="knob-shap"
-            label="Shape (rd)"
+            label="Shape (Rd)"
             :minValue="synthState.shapeParam.min"
             :maxValue="synthState.shapeParam.max"
             :value.sync="synthState.shapeParam.value"
@@ -108,7 +108,6 @@ import Plotter from "@/components/Plotter.vue";
 import MainAudio from "@/core/main-audio";
 import GlottalSynth from "@/core/glottal-synth";
 import Formants, { Vowel, IFormantDefinition } from "@/core/formants";
-// import LfModelNode from '@/core/lf-model-node';
 
 class SynthProp {
   public value: number;
@@ -140,11 +139,19 @@ class SynthState {
 export default class Synth extends Vue {
   @Prop(MainAudio) private mainAudio!: MainAudio;
 
+  private lfWaveform: ILfWaveform = { tp: 0, te: 0, ta: 0, tc: 0, values: [] };
   public synthState = new SynthState();
   private synth!: GlottalSynth;
 
   private created() {
-    this.synth = new GlottalSynth(this.mainAudio, 70, Vowel.A_Bass);
+    this.synth = new GlottalSynth(
+      this.mainAudio,
+      70,
+      Vowel.A_Bass,
+      (v: ILfWaveform) => {
+        this.lfWaveform = v;
+      }
+    );
   }
 
   private selectKnob(knob: any) {
@@ -213,6 +220,7 @@ export default class Synth extends Vue {
   /* box model */
   margin: auto;
   width: 950px;
+  border-radius: 5px;
 
   /* positioning */
   padding: 50px 20px 30px 20px;

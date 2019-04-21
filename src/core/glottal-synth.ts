@@ -19,17 +19,15 @@ const PLOTTER_RESOLUTION: number = 50;
 export default class GlottalSynth extends SoundUnit {
 
     private mainAudio: MainAudio;
-
-    private initFrequency: number;
-    private initVowel: Vowel;
     private onWaveformChange: (newWaveform: ILfWaveform) => void;
+
     private lfModel!: LfModelNode;
     private formantFilters!: IFormantFilter[];
 
     private vibrato: any;
     private envelope: any;
 
-    constructor(mainAudio: MainAudio, frequency: number, vowel: Vowel, onWaveformChange: (newWaveform: ILfWaveform) => void) {
+    constructor(mainAudio: MainAudio, onWaveformChange: (newWaveform: ILfWaveform) => void) {
 
         super();
 
@@ -37,8 +35,6 @@ export default class GlottalSynth extends SoundUnit {
 
         // build an audio graph starting from native Web Audio
         this.mainAudio = mainAudio;
-        this.initFrequency = frequency;
-        this.initVowel = vowel;
         this.onWaveformChange = onWaveformChange;
 
         // load worklet in audio context
@@ -48,7 +44,6 @@ export default class GlottalSynth extends SoundUnit {
                 () => {
                     console.log(`Worklet processor '${lfModule}' loaded`);
                     this.setupAudioGraph();
-                    // this.inputController.setSoundUnit(this.soundUnit);
                 },
                 (error: any) => console.error(error),
             );
@@ -58,7 +53,7 @@ export default class GlottalSynth extends SoundUnit {
 
         this.lfModel = new LfModelNode(this.mainAudio, this.onWaveformChange);
         this.lfModel.requestWaveform(PLOTTER_RESOLUTION);
-        this.lfModel.getFrequency().setValueAtTime(this.initFrequency, this.mainAudio.audioContext.currentTime);
+        this.lfModel.getFrequency().setValueAtTime(70, this.mainAudio.audioContext.currentTime);
 
         const aspirationNoise: AudioNode = this.createAspirationNoiseNode();
         aspirationNoise.connect(this.lfModel); // then connects to sourceSwitch
@@ -94,7 +89,7 @@ export default class GlottalSynth extends SoundUnit {
                 volume,
             });
         }
-        this.setVowel(this.initVowel);
+        this.setVowel(Vowel.A_Bass);
 
         // link it all together
         const gainNode: any = new Tone.Gain();

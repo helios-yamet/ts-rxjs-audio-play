@@ -1,12 +1,16 @@
 <template>
   <div v-bind:id="id" v-bind:title="id" class="knob">
-    <div class="knob-drag-area"></div>
+    <div
+      class="knob-drag-area"
+      :class="{'map-mode': ctrl.midiMapMode, 'map-learn': ctrl.midiMapLearning}"
+      @click="midiMapSelected"
+    ></div>
     <div class="knob-value">{{ displayValueInternal() }}</div>
     <div class="knob-sprites-wrapper">
       <div class="knob-sprites" :style="rotation"></div>
     </div>
-    <div class="knob-label" :class="{selected: selected}" @click="select">
-      <span>{{ label }}</span>
+    <div class="knob-label">
+      <span>{{ ctrl.name }}</span>
     </div>
   </div>
 </template>
@@ -20,45 +24,37 @@ import * as Rx from "rxjs/Rx";
 export default class Knob extends Vue {
   @Prop(String) private id!: string;
   @Prop(String) private label!: string;
-  @Prop(Number) private minValue!: number;
-  @Prop(Number) private maxValue!: number;
-  @Prop(Number) private value!: number;
-  @Prop(Function) private displayValue!: (v: number) => string;
+  @Prop(Object) private ctrl!: ISynthControl;
+
   private subscriptions!: Rx.Subscription[];
 
-  public internalValue: number = this.value;
-  public selected: boolean = false;
-
   private displayValueInternal() {
-    return this.displayValue
-      ? this.displayValue(this.internalValue)
-      : this.internalValue;
+    return this.ctrl.display
+      ? this.ctrl.display(this.ctrl.value)
+      : this.ctrl.value;
   }
 
   private get rotation() {
     const NB_FRAMES: number = 50;
     const SPRITE_WIDTH: number = 100;
     const ratio: number =
-      (this.internalValue - this.minValue) / (this.maxValue - this.minValue);
+      (this.ctrl.value - this.ctrl.min) /
+      (this.ctrl.max - this.ctrl.min);
     const frame: number = Math.floor(ratio * (NB_FRAMES - 1));
     return `transform: translate(${-frame * SPRITE_WIDTH}px, 0px)`;
   }
 
   public get valueRatio(): number {
     return (
-      (this.internalValue - this.minValue) / (this.maxValue - this.minValue)
+      (this.ctrl.value - this.ctrl.min) /
+      (this.ctrl.max - this.ctrl.min)
     );
   }
 
-  @Watch("value")
-  private onValueModified(newValue: number) {
-    this.internalValue = newValue;
-  }
-
-  @Emit()
-  private select() {
-    this.selected = !this.selected;
-    return { id: this.id, selected: this.selected };
+  private midiMapSelected() {
+    if (this.ctrl.midiMapMode) {
+      this.$emit("midi-map-selected", this.ctrl);
+    }
   }
 
   private mounted() {
@@ -69,11 +65,12 @@ export default class Knob extends Vue {
       "mousedown"
     );
 
-    const mouseDrag$: Rx.Observable<number> = mouseDown$.flatMap(
-      (downEvent: MouseEvent) => {
+    const mouseDrag$: Rx.Observable<number> = mouseDown$
+      .filter(() => !this.ctrl.midiMapMode)
+      .flatMap((downEvent: MouseEvent) => {
         downEvent.preventDefault();
         const startY: number = downEvent.screenY;
-        const startValue: number = this.internalValue;
+        const startValue: number = this.ctrl.value;
 
         return Rx.Observable.fromEvent<MouseEvent>(document, "mousemove")
           .map(moveEvent => {
@@ -83,23 +80,19 @@ export default class Knob extends Vue {
               Math.min(Math.abs(dist), MAX_DRAG_DIST) * sign;
             const distRatio: number = normalizedDist / MAX_DRAG_DIST;
             const newValue: number =
-              startValue + distRatio * (this.maxValue - this.minValue);
+              startValue + distRatio * (this.ctrl.max - this.ctrl.min);
             return Math.round(
-              Math.min(this.maxValue, Math.max(this.minValue, newValue))
+              Math.min(this.ctrl.max, Math.max(this.ctrl.min, newValue))
             );
           })
           .distinctUntilChanged()
           .takeUntil(Rx.Observable.fromEvent<MouseEvent>(document, "mouseup"));
-      }
-    );
+      });
 
     this.subscriptions = [];
     this.subscriptions.push(
       mouseDrag$.subscribe(
-        state => {
-          this.internalValue = state;
-          this.$emit("update:value", state);
-        },
+        state => { this.ctrl.value = state; },
         error => console.error(error)
       )
     );
@@ -128,8 +121,8 @@ export default class Knob extends Vue {
 .knob-drag-area {
   /* positioning */
   position: absolute;
-  left: 20px;
-  top: 20px;
+  left: 15px;
+  top: 7px;
   z-index: 2;
 
   /* box-model */
@@ -141,6 +134,20 @@ export default class Knob extends Vue {
 
   /* misc */
   cursor: n-resize;
+}
+
+.knob-drag-area.map-mode {
+  /* visual */
+  background-color: #af58ff;
+  opacity: 0.5;
+
+  /* misc */
+  cursor: pointer;
+}
+
+.knob-drag-area.map-mode.map-learn {
+  /* box-model */
+  border: 4px solid #e6a1e6;
 }
 
 .knob-sprites-wrapper {
@@ -214,24 +221,6 @@ export default class Knob extends Vue {
 
   /* misc */
   user-select: none;
-  cursor: pointer;
-}
-
-.knob-label :hover {
-  /* typography */
-  font-weight: bold;
-}
-
-.knob-label.selected {
-  /* box-model */
-  border: 2px solid #24303a;
-
-  /* visual */
-  background-color: #5e676e;
-
-  /* typography */
-  font-weight: bold;
-  color: white;
 }
 </style>
 

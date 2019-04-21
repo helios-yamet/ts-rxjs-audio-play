@@ -23,14 +23,6 @@ interface AudioParamMap {
   get(param: string): AudioParam;
 }
 
-interface ILfWaveform {
-  tp: number;
-  te: number;
-  ta: number;
-  tc: number;
-  values: number[];
-}
-
 declare class AudioWorkletProcessor {
   public port: MessagePort;
   public process(inputs: Float32Array[][], outputs: Float32Array[][], parameters: { [name: string]: Float32Array }): boolean;
@@ -43,4 +35,23 @@ declare interface ProcessorParams {
   defaultValue: number;
   minValue?: number;
   maxValue?: number;
+}
+
+declare interface ISynthControl {
+  value: number;
+  min: number;
+  max: number;
+  display: ((v: number) => string) | undefined;
+  midiMapMode: boolean;
+  midiLearning: boolean;
+  midiMappedTo: string | undefined;
+  setValueByRatio(value: number);
+}
+
+declare interface ILfWaveform {
+  tp: number;
+  te: number;
+  ta: number;
+  tc: number;
+  values: number[];
 }

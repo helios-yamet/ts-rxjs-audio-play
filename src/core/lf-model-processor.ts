@@ -100,8 +100,6 @@ class LfModel extends AudioWorkletProcessor {
 
     constructor() {
         super();
-
-        // the 
         this.port.onmessage = (event) => {
             this.port.postMessage(this.currentFunction.render(event.data));
         };

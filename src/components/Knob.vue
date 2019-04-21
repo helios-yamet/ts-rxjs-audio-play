@@ -2,10 +2,11 @@
   <div v-bind:id="id" v-bind:title="id" class="knob">
     <div
       class="knob-drag-area"
-      :class="{'map-mode': ctrl.midiMapMode, 'map-learn': ctrl.midiMapLearning}"
+      :class="{'map-mode': ctrl.midiMapMode, 'map-learn': ctrl.midiLearning}"
       @click="midiMapSelected"
     ></div>
     <div class="knob-value">{{ displayValueInternal() }}</div>
+    <div v-if="ctrl.midiMapMode && ctrl.midiMappedTo" class="midi-mapped">#{{ ctrl.midiMappedTo }}</div>
     <div class="knob-sprites-wrapper">
       <div class="knob-sprites" :style="rotation"></div>
     </div>
@@ -53,7 +54,7 @@ export default class Knob extends Vue {
 
   private midiMapSelected() {
     if (this.ctrl.midiMapMode) {
-      this.$emit("midi-map-selected", this.ctrl);
+      this.$emit("midi-learn", this.ctrl);
     }
   }
 
@@ -143,6 +144,32 @@ export default class Knob extends Vue {
 
   /* misc */
   cursor: pointer;
+}
+
+.midi-mapped {
+  /* positioning */
+  position: absolute;
+  left: 55px;
+  top: 7px;
+  z-index: 3;
+
+  /* box-model */
+  width: 40px;
+  height: 20px;
+  padding-bottom: 3px;
+  border: 2px solid rgb(99, 99, 99);
+
+  /* visual */
+  background-color: #333;
+
+  /* typography */
+  font-size: .8em;
+  font-family: monospace;
+  color: white;
+  text-align: center;
+
+  /* misc */
+  user-select: none;
 }
 
 .knob-drag-area.map-mode.map-learn {

@@ -7,15 +7,27 @@ const MIDI_NOTE_OFF_EVENT: number = 128;
 
 export default class MidiController implements IDisposable {
 
-    private soundUnit: SoundUnit;
-    private controls: ISynthControl[];
+    private soundUnit!: SoundUnit;
+    private learningControl: ISynthControl | undefined;
 
     private inputs: Map<string, WebMidi.MIDIPort> | undefined;
     private midiConnection: Rx.Subscription | undefined;
+    private mappings = new Map<number, ISynthControl>();
 
-    constructor(soundUnit: SoundUnit, controls: ISynthControl[]) {
+    public setSoundUnit(soundUnit: SoundUnit): void {
         this.soundUnit = soundUnit;
-        this.controls = controls;
+    }
+
+    public learn(ctrl: ISynthControl): void {
+        if(this.learningControl) {
+            this.learningControl.midiLearning = false;
+        }
+        this.learningControl = ctrl;
+        ctrl.midiLearning = true;
+    }
+
+    public stopLearn(): void {
+        this.learningControl = undefined;
     }
 
     /**
@@ -38,6 +50,12 @@ export default class MidiController implements IDisposable {
             return;
         }
 
+        // disconnect from existing controller
+        if (this.midiConnection) {
+            this.midiConnection.unsubscribe();
+        }
+
+        // listent to MIDI events on the input
         this.midiConnection = Rx.Observable.fromEvent(input, "midimessage")
             .map((event) => event as WebMidi.MIDIMessageEvent)
             .distinctUntilChanged()
@@ -48,7 +66,6 @@ export default class MidiController implements IDisposable {
                         return;
                     case MIDI_NOTE_ON_EVENT:
                         this.soundUnit.noteOn();
-                        console.log(`MIDI Note ON ! -> ${midiEvent.data[1]} / ${midiEvent.data[2]}`);
                         return;
                     case MIDI_NOTE_OFF_EVENT:
                         this.soundUnit.noteOff();
@@ -58,8 +75,28 @@ export default class MidiController implements IDisposable {
     }
 
     private handleControlChange(id: number, data: number): void {
-        // console.log(`Control change (id: ${id}, data: ${data})`);
-        this.controls[id - 21].setValueByRatio(data / 127); // for debug
+
+        if (this.learningControl) {
+            this.registerMapping(id, this.learningControl);
+        }
+
+        let mapped: ISynthControl | undefined;
+        if (mapped = this.mappings.get(id)) {
+            mapped.setValueByRatio(data / 127);
+        }
+    }
+
+    private registerMapping(midiId: number, ctrl: ISynthControl): void {
+
+        // unregister existing one (if any)
+        var existingMapping: ISynthControl | undefined = this.mappings.get(midiId);
+        if (existingMapping) {
+            existingMapping.midiMappedTo = "";
+        }
+
+        // register (or override) new one
+        ctrl.midiMappedTo = `${midiId}`;
+        this.mappings.set(midiId, ctrl);
     }
 
     dispose(): void {

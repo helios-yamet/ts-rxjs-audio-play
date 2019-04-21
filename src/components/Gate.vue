@@ -13,16 +13,53 @@
       <input type="checkbox" id="check-hold" v-model="hold" v-on:change="releaseButton">
       <label class="form-check-label" for="check-hold">Hold</label>
     </div>
+    <div>
+      <select
+        v-model="selectedMidiInputId"
+        v-on:change="$emit('midi-input-selected', selectedMidiInputId)"
+        :disabled="noMidiInput"
+      >
+        <option
+          value
+          disabled
+          hidden
+        >{{ noMidiInput ? "(no MIDI input found)" : "-- select MIDI input -- " }}</option>
+        <option v-for="input in midiInputs" :key="input.id" :value="input.id">{{ input.name }}</option>
+      </select>
+      <a href="#" v-on:click="toggleMidiLearn()" class="midi-learn" v-if="selectedMidiInputId !== ''">{{ !midiLearning ? "MIDI learn" : "stop MIDI learn"}}</a>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import { Component, Prop, Vue, Emit } from "vue-property-decorator";
+import MidiController from "@/core/midi-controller";
 
 @Component
 export default class Gate extends Vue {
-  public isOn: boolean = false;
-  public hold: boolean = false;
+  @Prop(Object) private midiController!: MidiController;
+
+  private isOn: boolean = false;
+  private hold: boolean = false;
+  private selectedMidiInputId: string = "";
+  private midiInputs: WebMidi.MIDIPort[] = [];
+  private midiLearning: boolean = false;
+
+  private get noMidiInput() {
+    return this.midiInputs.length === 0;
+  }
+
+  public created() {
+    this.midiController.getMidiInterfaces().then(map => {
+      this.midiInputs = Array.from(map.values());
+    });
+  }
+
+  @Emit()
+  private toggleMidiLearn() {
+    this.midiLearning = !this.midiLearning;
+    return this.midiLearning;
+  }
 
   private clickButton() {
     if (!this.isOn) {
@@ -52,25 +89,32 @@ export default class Gate extends Vue {
 <style scoped>
 .gate {
   width: 170px;
+  font-size: 0.9em;
 }
 
-.gate button {
+button {
   margin: 10px 0px;
   width: 80px;
 }
 
-.gate input {
+input {
   position: relative;
   top: 2px;
   margin-left: 10px;
 }
 
-.gate label {
+label {
   margin-left: 5px;
-  font-size: 0.9em;
 }
 
-.gate select {
+select {
   width: 100%;
+  margin-bottom: 3px;
+}
+
+a.midi-learn {
+  display: block;
+  float: right;
+  font-size: 0.8em;
 }
 </style>

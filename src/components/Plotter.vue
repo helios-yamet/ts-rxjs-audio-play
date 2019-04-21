@@ -40,6 +40,7 @@ export default class Plotter extends Vue {
 
   @Watch("lfWaveform")
   private updateChart() {
+    console.log("changed =)(/=)(/=7")
     this.chart.update(
       Plotter.buildData(this.lfWaveform),
       Plotter.buildOptions(this.lfWaveform)

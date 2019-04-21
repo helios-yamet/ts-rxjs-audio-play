@@ -44,7 +44,7 @@ declare interface ISynthControl {
   display: ((v: number) => string) | undefined;
   midiMapMode: boolean;
   midiLearning: boolean;
-  midiMappedTo: string | undefined;
+  midiMappedTo: string;
   setValueByRatio(value: number);
 }
 

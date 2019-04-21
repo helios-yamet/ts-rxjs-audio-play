@@ -1,7 +1,7 @@
 import Formants from "./formants";
 
 export class SynthControl implements ISynthControl {
-    
+
     public group: string;
     public name: string;
     public value: number;
@@ -10,7 +10,7 @@ export class SynthControl implements ISynthControl {
     public display: (v: number) => string;
     public midiMapMode: boolean = false;
     public midiLearning: boolean = false;
-    public midiMappedTo: string | undefined;
+    public midiMappedTo: string = "";
 
     constructor(
         group: string,
@@ -89,8 +89,15 @@ export default class SynthState {
             this.aspiration,
             this.vowel,
             this.vibAmount,
-            this.frequency,
+            this.vibFrequency,
             this.vibDepth
         ];
+    }
+
+    public setMidiLearn(toggle: boolean): void {
+        this.getAllControls().forEach((ctrl: ISynthControl) => {
+            ctrl.midiMapMode = toggle;
+            ctrl.midiLearning = false;
+        });
     }
 }

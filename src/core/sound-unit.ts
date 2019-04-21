@@ -1,7 +1,7 @@
 import { ModulationEvent } from "./note-handler";
 
 /**
- * A simple abtraction for something which can play some sound and
+ * A simple abStraction for something which can play some sound and
  * modulate it.
  */
 export default abstract class SoundUnit implements IDisposable {

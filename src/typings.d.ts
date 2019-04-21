@@ -4,13 +4,13 @@
  */
 
 declare module '!raw-loader*' {
-  const contents: string
-  export = contents
+  const contents: string;
+  export default contents;
 }
 
 declare module '!file-loader*' {
-  const contents: string
-  export = contents
+  const contents: string;
+  export = contents;
 }
 
 declare module 'tone';
@@ -24,8 +24,8 @@ interface AudioParamMap {
 }
 
 declare class AudioWorkletProcessor {
-  port: MessagePort;
-  process(inputs: Float32Array[][], outputs: Float32Array[][], parameters: { [name: string]: Float32Array }): boolean;
+  public port: MessagePort;
+  public process(inputs: Float32Array[][], outputs: Float32Array[][], parameters: { [name: string]: Float32Array }): boolean;
 }
 
 declare function registerProcessor(name: string, impl: any): void;
@@ -35,4 +35,23 @@ declare interface ProcessorParams {
   defaultValue: number;
   minValue?: number;
   maxValue?: number;
+}
+
+declare interface ISynthControl {
+  value: number;
+  min: number;
+  max: number;
+  display: ((v: number) => string) | undefined;
+  midiMapMode: boolean;
+  midiLearning: boolean;
+  midiMappedTo: string;
+  setValueByRatio(value: number);
+}
+
+declare interface ILfWaveform {
+  tp: number;
+  te: number;
+  ta: number;
+  tc: number;
+  values: number[];
 }
